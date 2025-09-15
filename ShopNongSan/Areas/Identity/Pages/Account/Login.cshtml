@@ -1,0 +1,151 @@
+﻿@page
+@model LoginModel
+
+@{
+    ViewData["Title"] = "Đăng nhập";
+    Layout = "/Views/Shared/_Layout.cshtml"; // nếu trang này đang để Layout = null thì thay lại dùng layout chung
+}
+
+<style>
+    /* Nền dịu + căn giữa full height */
+    .auth-wrap {
+        min-height: calc(100vh - 120px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(900px 500px at 10% 0%, rgba(0,0,0,.04), transparent), radial-gradient(900px 500px at 90% 100%, rgba(0,0,0,.03), transparent);
+        padding: 32px 12px;
+    }
+
+    .auth-card {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,.08);
+        overflow: hidden;
+    }
+
+        .auth-card .card-header {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: #0b1b2b;
+            border: 0;
+        }
+
+    .brand-circle {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: rgba(255,255,255,.8);
+        display: grid;
+        place-items: center;
+        font-weight: 800;
+        letter-spacing: .5px;
+    }
+
+    .muted {
+        color: #6b7280;
+    }
+
+    .input-group .btn-outline-secondary {
+        border-color: #ced4da;
+    }
+</style>
+
+<div class="auth-wrap">
+    <div class="container" style="max-width: 520px;">
+        <div class="card auth-card">
+            <div class="card-header py-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="brand-circle">NS</div>
+                    <div>
+                        <h1 class="h4 mb-1">Đăng nhập</h1>
+                        <div class="small muted">Sử dụng tài khoản để tiếp tục mua sắm nông sản sạch</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-4 p-lg-5">
+                <section>
+                    <form id="account" method="post" class="needs-validation" novalidate>
+                        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Input.Email" class="form-control" autocomplete="username"
+                                   aria-required="true" placeholder="name@example.com" />
+                            <label asp-for="Input.Email" class="form-label">Email</label>
+                            <span asp-validation-for="Input.Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="input-group">
+                                <div class="form-floating flex-grow-1">
+                                    <input asp-for="Input.Password" type="password" class="form-control"
+                                           id="passwordInput" autocomplete="current-password"
+                                           aria-required="true" placeholder="••••••••" />
+                                    <label asp-for="Input.Password" class="form-label">Mật khẩu</label>
+                                </div>
+                                <button type="button" class="btn btn-outline-secondary" id="togglePwd"
+                                        title="Hiện/ẩn mật khẩu" aria-label="Toggle password visibility">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="Input.Password" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" asp-for="Input.RememberMe" />
+                                <label asp-for="Input.RememberMe" class="form-check-label"></label>
+                            </div>
+                            <a id="forgot-password" class="small" asp-page="./ForgotPassword">Quên mật khẩu?</a>
+                        </div>
+
+                        <button id="login-submit" type="submit" class="btn btn-primary btn-lg w-100">
+                            Đăng nhập
+                        </button>
+
+                        <div class="text-center mt-4">
+                            <span class="muted">Chưa có tài khoản?</span>
+                            <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Đăng ký ngay</a>
+                        </div>
+
+                        <hr class="my-4" />
+
+                        <div class="text-center small muted">
+                            <a id="resend-confirmation" asp-page="./ResendEmailConfirmation">
+                                Gửi lại email xác nhận
+                            </a>
+                        </div>
+                    </form>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Toggle hiện/ẩn mật khẩu
+        (function () {
+            const btn = document.getElementById('togglePwd');
+            const input = document.getElementById('passwordInput');
+            if (btn && input) {
+                btn.addEventListener('click', function () {
+                    const isPwd = input.getAttribute('type') === 'password';
+                    input.setAttribute('type', isPwd ? 'text' : 'password');
+                    btn.innerHTML = isPwd ? '<i class="bi bi-eye-slash"></i>' : '<i class="bi bi-eye"></i>';
+                });
+            }
+
+            // Bootstrap client-side validation (tùy chọn)
+            const form = document.getElementById('account');
+            form.addEventListener('submit', function (e) {
+                if (!form.checkValidity()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        })();
+    </script>
+}
