@@ -1,0 +1,17 @@
+﻿@model ShopNongSan.Models.Category
+@{
+    ViewData["Title"] = "Thêm loại";
+}
+<form method="post">
+    @Html.AntiForgeryToken()
+    <div class="mb-3">
+        <label asp-for="Name" class="form-label"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <button class="btn btn-primary">Lưu</button>
+    <a class="btn btn-link" asp-action="Index">Hủy</a>
+</form>
+@section Scripts {
+    <partial name="~/Areas/Dashboard/Views/Shared/_ValidationScriptsPartial.cshtml" />
+}

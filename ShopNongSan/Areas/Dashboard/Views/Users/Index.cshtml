@@ -1,0 +1,81 @@
+﻿@model IEnumerable<ShopNongSan.Models.ApplicationUser>
+@{
+    ViewData["Title"] = "Người dùng";
+    var roles = ViewBag.Roles as List<string>;
+    var userRoles = ViewBag.UserRoles as Dictionary<string, IList<string>>;
+}
+<form class="row g-2 mb-3">
+    <div class="col-md-6">
+        <input name="q" value="@Context.Request.Query["q"]" class="form-control" placeholder="Tìm theo email, username, họ tên..." />
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-outline-secondary w-100">Tìm</button>
+    </div>
+</form>
+
+<table class="table table-hover align-middle">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Họ tên</th>
+            <th>Vai trò</th>
+            <th class="text-end">Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var u in Model)
+        {
+            var rs = (userRoles != null && userRoles.ContainsKey(u.Id)) ? userRoles[u.Id] : new List<string>();
+            <tr>
+                <td>@u.Email</td>
+                <td>@u.FullName</td>
+                <td>@string.Join(", ", rs)</td>
+                <td class="text-end">
+                    <div class="d-inline-block">
+                        <form method="post" asp-action="Lock" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="userId" value="@u.Id" />
+                            <button class="btn btn-sm btn-outline-warning">Khóa 30 ngày</button>
+                        </form>
+                        <form method="post" asp-action="Unlock" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="userId" value="@u.Id" />
+                            <button class="btn btn-sm btn-outline-secondary">Mở khóa</button>
+                        </form>
+                        <form method="post" asp-action="Delete" class="d-inline" onsubmit="return confirm('Xóa user này?')">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="userId" value="@u.Id" />
+                            <button class="btn btn-sm btn-outline-danger">Xóa</button>
+                        </form>
+                    </div>
+                    <div class="dropdown d-inline-block ms-2">
+                        <button class="btn btn-sm btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">Vai trò</button>
+                        <div class="dropdown-menu dropdown-menu-end p-2">
+                            @foreach (var r in roles ?? new List<string>())
+                            {
+                                <form method="post" asp-action="AddToRole" class="d-flex gap-2 align-items-center">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="userId" value="@u.Id" />
+                                    <input type="hidden" name="role" value="@r" />
+                                    <button class="btn btn-sm @(rs.Contains(r) ? "btn-success" : "btn-outline-secondary") w-100">
+                                        @r
+                                    </button>
+                                </form>
+                                @if (rs.Contains(r))
+                                {
+                                    <form method="post" asp-action="RemoveFromRole" class="mt-1">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="userId" value="@u.Id" />
+                                        <input type="hidden" name="role" value="@r" />
+                                        <button class="btn btn-sm btn-outline-danger w-100">Bỏ @r</button>
+                                    </form>
+                                }
+                                <hr class="my-2" />
+                            }
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

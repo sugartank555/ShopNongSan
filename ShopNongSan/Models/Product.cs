@@ -1,4 +1,7 @@
 ﻿// Models/Product.cs
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System.ComponentModel.DataAnnotations;
+
 namespace ShopNongSan.Models
 {
     public class Product
@@ -10,8 +13,9 @@ namespace ShopNongSan.Models
         public string? ImageUrl { get; set; }
         public decimal Price { get; set; }        // Giá bán
         public int Stock { get; set; }            // Tồn kho
-
+        [Required]
         public int CategoryId { get; set; }
+        [ValidateNever]
         public Category Category { get; set; } = default!;
 
         public bool IsOrganic { get; set; } = true; // Hữu cơ/sạch

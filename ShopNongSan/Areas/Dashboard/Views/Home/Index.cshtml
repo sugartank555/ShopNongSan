@@ -1,0 +1,37 @@
+﻿@{
+    ViewData["Title"] = "Tổng quan";
+}
+<div class="row g-3">
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="text-secondary small">Sản phẩm</div>
+                <div class="h4 mb-0">@ViewBag.TotalProducts</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="text-secondary small">Đơn hàng</div>
+                <div class="h4 mb-0">@ViewBag.TotalOrders</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="text-secondary small">Chờ xử lý</div>
+                <div class="h4 mb-0">@ViewBag.PendingOrders</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="text-secondary small">Doanh thu</div>
+                <div class="h4 mb-0">@String.Format("{0:#,0} ₫", ViewBag.Revenue)</div>
+            </div>
+        </div>
+    </div>
+</div>

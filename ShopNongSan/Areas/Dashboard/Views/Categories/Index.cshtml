@@ -1,0 +1,30 @@
+﻿@model IEnumerable<ShopNongSan.Models.Category>
+@{
+    ViewData["Title"] = "Loại sản phẩm";
+}
+<div class="d-flex justify-content-between mb-3">
+    <div></div>
+    <a class="btn btn-primary" asp-action="Create">Thêm loại</a>
+</div>
+
+<table class="table table-striped align-middle">
+    <thead>
+        <tr><th>ID</th><th>Tên</th><th class="text-end">Thao tác</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var c in Model)
+        {
+            <tr>
+                <td>@c.Id</td>
+                <td>@c.Name</td>
+                <td class="text-end">
+                    <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@c.Id">Sửa</a>
+                    <form class="d-inline" method="post" asp-action="Delete" asp-route-id="@c.Id">
+                        @Html.AntiForgeryToken()
+                        <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Xóa loại?')">Xóa</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

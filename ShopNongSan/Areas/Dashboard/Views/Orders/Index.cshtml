@@ -1,0 +1,41 @@
+﻿@model IEnumerable<ShopNongSan.Models.Order>
+@{
+    ViewData["Title"] = "Đơn hàng";
+    var status = ViewBag.Status as string;
+}
+<form class="row g-2 mb-3">
+    <div class="col-md-3">
+        <select name="status" class="form-select" onchange="this.form.submit()">
+            <option value="">— Tất cả trạng thái —</option>
+            @foreach (var s in new[] { "Pending", "Paid", "Shipped", "Completed", "Canceled" })
+            {
+                <option value="@s" selected="@(status == s ? "selected" : null)">@s</option>
+            }
+        </select>
+    </div>
+</form>
+
+<table class="table table-striped align-middle">
+    <thead>
+        <tr><th>ID</th><th>Ngày</th><th>Khách</th><th>Tổng</th><th>Trạng thái</th><th class="text-end">Thao tác</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var o in Model)
+        {
+            <tr>
+                <td>@o.Id</td>
+                <td>@o.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                <td>@o.UserId</td>
+                <td>@o.Total.ToString("#,0") ₫</td>
+                <td>@o.Status</td>
+                <td class="text-end">
+                    <a class="btn btn-sm btn-outline-secondary" asp-action="Detail" asp-route-id="@o.Id">Chi tiết</a>
+                    <form method="post" asp-action="Delete" asp-route-id="@o.Id" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Xóa đơn hàng?')">Xóa</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,55 @@
+﻿@model IEnumerable<ShopNongSan.Models.Product>
+@{
+    ViewData["Title"] = "Sản phẩm";
+    var select = ViewBag.Categories as Microsoft.AspNetCore.Mvc.Rendering.SelectList;
+}
+<form class="row g-2 mb-3">
+    <div class="col-md-3">
+        <select name="categoryId" asp-items="select" class="form-select">
+            <option value="">— Tất cả loại —</option>
+        </select>
+    </div>
+    <div class="col-md-5">
+        <input name="q" class="form-control" placeholder="Tìm theo tên..." value="@Context.Request.Query["q"]" />
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-outline-secondary w-100">Lọc</button>
+    </div>
+    <div class="col-md-2">
+        <a class="btn btn-primary w-100" asp-action="Create">Thêm sản phẩm</a>
+    </div>
+</form>
+
+<table class="table table-hover align-middle">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Tên</th>
+            <th>Loại</th>
+            <th>Giá</th>
+            <th>Tồn</th>
+            <th>Hữu cơ</th>
+            <th class="text-end">Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var p in Model)
+        {
+            <tr>
+                <td>@p.Id</td>
+                <td>@p.Name</td>
+                <td>@p.Category?.Name</td>
+                <td>@p.Price.ToString("#,0") ₫</td>
+                <td>@p.Stock</td>
+                <td>@(p.IsOrganic ? "✔" : "—")</td>
+                <td class="text-end">
+                    <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@p.Id">Sửa</a>
+                    <form method="post" asp-action="Delete" asp-route-id="@p.Id" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Xóa sản phẩm?')">Xóa</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

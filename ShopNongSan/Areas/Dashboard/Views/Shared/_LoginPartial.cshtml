@@ -1,0 +1,44 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using ShopNongSan.Models
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+@{
+    var currentUser = SignInManager.IsSignedIn(User)
+        ? await UserManager.GetUserAsync(User)
+        : null;
+    var displayName = currentUser?.FullName ?? currentUser?.Email ?? User.Identity?.Name;
+}
+@if (SignInManager.IsSignedIn(User))
+{
+        <li class="nav-item">
+            <a class="nav-link" asp-area="Identity" asp-page="/Account/Manage/Index" title="Tài khoản">
+                Xin chào, @displayName
+            </a>
+        </li>
+
+    @if (User.IsInRole("Admin"))
+    {
+            <li class="nav-item">
+                <a class="nav-link" asp-area="Dashboard" asp-controller="Products" asp-action="Index">Quản trị</a>
+            </li>
+    }
+
+        <li class="nav-item">
+            <form class="d-inline" method="post"
+                  asp-area="Identity" asp-page="/Account/Logout"
+                  asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-link nav-link p-0">Đăng xuất</button>
+            </form>
+        </li>
+}
+else
+{
+        <li class="nav-item">
+            <a class="nav-link" asp-area="Identity" asp-page="/Account/Register">Register</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" asp-area="Identity" asp-page="/Account/Login">Login</a>
+        </li>
+}
