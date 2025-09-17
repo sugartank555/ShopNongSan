@@ -1,0 +1,11 @@
+﻿@model ShopNongSan.Models.Order
+@{
+    ViewData["Title"] = "Đặt hàng thành công";
+}
+<div class="alert alert-success">
+    <h5>Đặt hàng thành công!</h5>
+    <div>Mã đơn: <strong>#@Model.Id</strong></div>
+    <div>Ngày tạo: @Model.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+</div>
+
+<a class="btn btn-primary" href="/Home">Tiếp tục mua sắm</a>

@@ -1,0 +1,146 @@
+﻿@model ShopNongSan.ViewModels.ProductDetailVM
+@{
+    ViewData["Title"] = Model.Product?.Name ?? "Chi tiết sản phẩm";
+    var p = Model.Product;
+}
+
+<div class="container my-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a asp-controller="Home" asp-action="Index">Trang chủ</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a asp-controller="Home" asp-action="Index" asp-route-categoryId="@p?.CategoryId">
+                    @p?.Category?.Name ?? "Danh mục"
+                </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                @p?.Name
+            </li>
+        </ol>
+    </nav>
+
+    @if (p == null)
+    {
+        <div class="alert alert-warning">Không tìm thấy sản phẩm.</div>
+    }
+    else
+    {
+        <div class="row g-4">
+            <!-- Ảnh sản phẩm -->
+            <div class="col-md-5">
+                <div class="ratio ratio-1x1 border rounded shadow-sm overflow-hidden">
+
+                    @if (!string.IsNullOrEmpty(p.ImageUrl))
+                    {
+                        <img src="@p.ImageUrl" alt="@p.Name" class="product-thumb" />
+                    }
+                    else
+                    {
+                        <span class="text-muted">Không có ảnh</span>
+                    }
+
+            </div>
+        </div>
+
+            <!-- Thông tin chính -->
+            <div class="col-md-7">
+                <h1 class="h4 mb-2">@p.Name</h1>
+                <div class="text-muted mb-3">
+                    Danh mục: <strong>@(p.Category?.Name ?? "—")</strong>
+                </div>
+
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <span class="h4 text-danger mb-0">@String.Format("{0:N0} ₫", p.Price)</span>
+                    @* Nếu có tồn kho thì hiển thị *@
+                @if (p.GetType().GetProperty("Stock") != null)
+                    {
+                        var stock = (int?)p.GetType().GetProperty("Stock")?.GetValue(p);
+                        <span class="badge @(stock > 0 ? "bg-success" : "bg-secondary")">
+                            @(stock > 0 ? $"Còn {stock} sp" : "Hết hàng")
+                        </span>
+                    }
+                </div>
+
+                <div class="mb-4">
+                    <p class="mb-1 text-muted">Mô tả:</p>
+                    <div class="border rounded p-3 bg-light">
+                        @Html.Raw(string.IsNullOrWhiteSpace(p.Description) ? "Chưa có mô tả." : p.Description)
+                    </div>
+                </div>
+
+                <!-- Hành động -->
+                <div class="d-flex flex-wrap gap-2">
+                    <form asp-controller="Cart" asp-action="Add" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="productId" value="@Model.Product.Id" />
+                        <input type="hidden" name="qty" value="1" />
+                        <button type="submit" class="btn btn-primary">
+                            Thêm vào giỏ
+                        </button>
+                    </form>
+
+
+                    <a class="btn btn-outline-secondary" asp-controller="Home" asp-action="Index">
+                        Tiếp tục mua sắm
+                    </a>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Sản phẩm liên quan -->
+        <div class="mt-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h5 mb-0">Sản phẩm liên quan</h2>
+                <a class="btn btn-sm btn-outline-secondary"
+                   asp-controller="Home" asp-action="Index" asp-route-categoryId="@p.CategoryId">
+                    Xem thêm
+                </a>
+            </div>
+
+            <div class="row g-4">
+                @if (Model.Related != null && Model.Related.Any())
+                {
+                    foreach (var r in Model.Related)
+                    {
+                        <div class="col-6 col-md-3">
+                            <div class="card h-100 shadow-sm">
+
+                                @if (!string.IsNullOrEmpty(p.ImageUrl))
+                                {
+                                    <img src="@p.ImageUrl" alt="@p.Name" class="product-thumb" />
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Không có ảnh</span>
+                                }
+                         class="card-img-top" style="object-fit:cover;height:180px" alt="@r.Name" />
+                    <div class="card-body d-flex flex-column">
+                        <h6 class="card-title text-truncate" title="@r.Name">@r.Name</h6>
+                        <div class="text-danger fw-semibold mb-3">
+                            @String.Format("{0:N0} ₫", r.Price)
+                        </div>
+                        <a class="btn btn-outline-primary mt-auto"
+                           asp-action="Product"
+                           asp-route-slug="@(r.Slug ?? "")"
+                           asp-route-id="@r.Id">
+                            Xem chi tiết
+                        </a>
+                    </div>
+                </div>
+            </div>
+                        }
+                }
+                else
+                {
+                    <div class="col-12">
+                        <div class="alert alert-light border">Chưa có sản phẩm liên quan.</div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>

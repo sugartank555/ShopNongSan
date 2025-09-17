@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ShopNongSan.Data;
 using ShopNongSan.Models;
+using ShopNongSan.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,10 @@ var conn = builder.Configuration.GetConnectionString("DefaultConnection")
            ?? throw new InvalidOperationException("Missing DefaultConnection.");
 builder.Services.AddDbContext<ApplicationDbContext>(o => o.UseSqlServer(conn));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+// Cart session service
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ShopNongSan.Services.ICartSession, ShopNongSan.Services.CartSession>();
 
 // Identity (đăng ký MỘT LẦN)
 builder.Services
@@ -25,7 +30,7 @@ builder.Services
     .AddDefaultTokenProviders()
     .AddDefaultUI();
 
-// Chỉ cấu hình cookie qua ConfigureApplicationCookie
+// Cookie paths
 builder.Services.ConfigureApplicationCookie(o =>
 {
     o.LoginPath = "/Identity/Account/Login";
@@ -33,8 +38,22 @@ builder.Services.ConfigureApplicationCookie(o =>
     o.AccessDeniedPath = "/Identity/Account/AccessDenied";
 });
 
+// Session
+builder.Services.AddDistributedMemoryCache();   // <— BẮT BUỘC
+builder.Services.AddSession(o =>
+{
+    o.IdleTimeout = TimeSpan.FromHours(2);
+    o.Cookie.HttpOnly = true;
+    o.Cookie.IsEssential = true;
+});
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession();
+builder.Services.AddScoped<ICartSession, CartSession>();
+
 
 var app = builder.Build();
 
@@ -50,15 +69,18 @@ else
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
 app.UseRouting();
 
+app.UseSession();          // <— đặt trước auth
 app.UseAuthentication();
 app.UseAuthorization();
 
+// routes
 app.MapControllerRoute(
-            name: "areas",
-            pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
-          );
+    name: "areas",
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

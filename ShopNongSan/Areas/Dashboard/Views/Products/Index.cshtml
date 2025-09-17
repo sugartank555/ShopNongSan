@@ -24,6 +24,7 @@
     <thead>
         <tr>
             <th>ID</th>
+            <th>Ảnh</th>
             <th>Tên</th>
             <th>Loại</th>
             <th>Giá</th>
@@ -37,6 +38,16 @@
         {
             <tr>
                 <td>@p.Id</td>
+                <td>
+                    @if (!string.IsNullOrEmpty(p.ImageUrl))
+                    {
+                        <img src="@p.ImageUrl" alt="@p.Name" class="product-thumb" />
+                    }
+                    else
+                    {
+                        <span class="text-muted">Không có ảnh</span>
+                    }
+                </td>
                 <td>@p.Name</td>
                 <td>@p.Category?.Name</td>
                 <td>@p.Price.ToString("#,0") ₫</td>
@@ -53,3 +64,13 @@
         }
     </tbody>
 </table>
+
+<style>
+    .product-thumb {
+        width: 80px;
+        height: 80px;
+        object-fit: cover; /* co ảnh cho vừa khung, không méo */
+        border-radius: 6px; /* bo góc nhẹ cho đẹp */
+        box-shadow: 0 0 3px rgba(0,0,0,.2);
+    }
+</style>

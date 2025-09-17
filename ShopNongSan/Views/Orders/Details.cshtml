@@ -1,0 +1,93 @@
+﻿@model ShopNongSan.Models.Order
+@{
+    ViewData["Title"] = $"Đơn hàng #{Model.Id}";
+    string badge = Model.Status switch
+    {
+        "Pending" => "bg-warning",
+        "Paid" => "bg-info",
+        "Shipped" => "bg-primary",
+        "Completed" => "bg-success",
+        "Canceled" => "bg-secondary",
+        _ => "bg-light text-dark"
+    };
+}
+
+<h4 class="mb-3">Đơn hàng #@Model.Id</h4>
+
+@if (TempData["msg"] is string m && !string.IsNullOrWhiteSpace(m))
+{
+    <div class="alert alert-info">@m</div>
+}
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-body">
+                <div><strong>Ngày tạo:</strong> @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                <div><strong>Khách hàng:</strong> @(Model.User?.Email ?? "")</div>
+                <div><strong>Địa chỉ giao:</strong> @Model.Address</div>
+                <div><strong>Tổng tiền:</strong> <span class="text-danger">@Model.Total.ToString("#,0") ₫</span></div>
+                <div class="mt-2">
+                    <strong>Trạng thái:</strong> <span class="badge @badge">@Model.Status</span>
+                </div>
+
+                @* nút huỷ khi Pending (tuỳ chọn) *@
+                @if (Model.Status == "Pending")
+                {
+                    <form class="mt-3" method="post" asp-action="Cancel" asp-route-id="@Model.Id">
+                        @Html.AntiForgeryToken()
+                        <button class="btn btn-outline-danger" onclick="return confirm('Huỷ đơn hàng này?')">
+                            Huỷ đơn
+                        </button>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title">Sản phẩm</h6>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Ảnh</th>
+                                <th>Tên</th>
+                                <th class="text-end">Đơn giá</th>
+                                <th class="text-center">SL</th>
+                                <th class="text-end">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var i in Model.Items)
+                            {
+                                var img = string.IsNullOrWhiteSpace(i.Product?.ImageUrl) ? "/images/placeholder.png" : i.Product.ImageUrl;
+                                <tr>
+                                    <td style="width:90px">
+                                        <img src="@img" class="rounded" style="width:80px;height:80px;object-fit:cover;" />
+                                    </td>
+                                    <td>@i.Product?.Name</td>
+                                    <td class="text-end">@i.Price.ToString("#,0") ₫</td>
+                                    <td class="text-center">@i.Quantity</td>
+                                    <td class="text-end">@((i.Price * i.Quantity).ToString("#,0")) ₫</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="4" class="text-end">Tổng:</th>
+                                <th class="text-end">@Model.Total.ToString("#,0") ₫</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="mt-2">
+                    <a asp-action="Index" class="btn btn-outline-secondary">Quay lại danh sách</a>
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-primary">Tiếp tục mua sắm</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

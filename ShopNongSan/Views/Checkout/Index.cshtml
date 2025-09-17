@@ -1,0 +1,72 @@
+﻿@model ShopNongSan.ViewModels.CartVM
+@{
+    ViewData["Title"] = "Thanh toán";
+    string V(string key) => Context.Request.HasFormContentType ? Context.Request.Form[key].ToString() : "";
+}
+
+<h4 class="mb-3">Xác nhận đơn hàng</h4>
+
+@if (Model == null || !Model.Lines.Any())
+{
+    <div class="alert alert-info">
+        Giỏ hàng đang trống. <a asp-controller="Home" asp-action="Index" class="alert-link">Tiếp tục mua sắm</a>.
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        <div class="col-md-7">
+            <div class="card shadow-sm">
+                <div class="card-header">Thông tin giao hàng</div>
+                <div class="card-body">
+                    <form asp-controller="Checkout" asp-action="Place" method="post" class="vstack gap-3">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="mb-2">
+                            <label class="form-label" for="fullName">Họ tên</label>
+                            <input id="fullName" name="fullName" class="form-control" required
+                                   value="@V("fullName")" />
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label" for="address">Địa chỉ</label>
+                            <input id="address" name="address" class="form-control" required
+                                   value="@V("address")" />
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label" for="phone">Điện thoại</label>
+                            <input id="phone" name="phone" class="form-control" required
+                                   value="@V("phone")" />
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <a asp-controller="Cart" asp-action="Index" class="btn btn-outline-secondary">Quay lại giỏ hàng</a>
+                            <button class="btn btn-primary">Đặt hàng</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card shadow-sm">
+                <div class="card-header">Tóm tắt đơn</div>
+                <ul class="list-group list-group-flush">
+                    @foreach (var l in Model.Lines)
+                    {
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>@l.Name × @l.Qty</span>
+                            <span>@l.Subtotal.ToString("#,0") ₫</span>
+                        </li>
+                    }
+                    <li class="list-group-item d-flex justify-content-between fw-bold">
+                        <span>Tổng cộng</span>
+                        <span class="text-danger">@Model.Total.ToString("#,0") ₫</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+}

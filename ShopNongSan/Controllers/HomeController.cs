@@ -1,32 +1,49 @@
-using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
-using ShopNongSan.Models;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using ShopNongSan.Data;
+using ShopNongSan.ViewModels;
 
 namespace ShopNongSan.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly ApplicationDbContext _db;
+        public HomeController(ApplicationDbContext db) => _db = db;
 
-        public HomeController(ILogger<HomeController> logger)
+        // GET /
+        // GET /home
+        public async Task<IActionResult> Index(string? q, int? categoryId)
         {
-            _logger = logger;
+            var vm = new StoreHomeVM
+            {
+                Categories = await _db.Categories.OrderBy(c => c.Name).ToListAsync(),
+                Q = q,
+                CategoryId = categoryId
+            };
+
+            var query = _db.Products.AsNoTracking().OrderByDescending(p => p.Id).AsQueryable();
+            if (!string.IsNullOrWhiteSpace(q)) query = query.Where(p => p.Name.Contains(q));
+            if (categoryId.HasValue) query = query.Where(p => p.CategoryId == categoryId.Value);
+
+            vm.Featured = await query.Take(12).ToListAsync();
+            return View(vm); // Views/Home/Index.cshtml
         }
 
-        public IActionResult Index()
+        // GET /product/slug/5
+        [Route("product/{slug}/{id:int}")]
+        public async Task<IActionResult> Product(string slug, int id)
         {
-            return View();
-        }
+            var p = await _db.Products
+                .Include(x => x.Category)
+                .FirstOrDefaultAsync(x => x.Id == id);
+            if (p == null) return NotFound();
 
-        public IActionResult Privacy()
-        {
-            return View();
-        }
+            var related = await _db.Products
+                .Where(x => x.CategoryId == p.CategoryId && x.Id != p.Id)
+                .OrderByDescending(x => x.Id).Take(8).ToListAsync();
 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return View(new ProductDetailVM { Product = p, Related = related });
+            // View: Views/Home/Product.cshtml
         }
     }
 }

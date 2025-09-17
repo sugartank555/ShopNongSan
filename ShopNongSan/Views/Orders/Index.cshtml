@@ -1,0 +1,57 @@
+﻿@{
+    ViewData["Title"] = "Đơn hàng của tôi";
+    var orders = ViewBag.Orders as IEnumerable<dynamic>;
+}
+
+<h4 class="mb-3">Đơn hàng của tôi</h4>
+
+@if (orders == null || !orders.Any())
+{
+    <div class="alert alert-info">
+        Bạn chưa có đơn hàng nào. <a asp-controller="Home" asp-action="Index" class="alert-link">Mua sắm ngay</a>.
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Mã đơn</th>
+                    <th>Ngày tạo</th>
+                    <th>SL SP</th>
+                    <th class="text-end">Tổng tiền</th>
+                    <th>Trạng thái</th>
+                    <th class="text-end"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var o in orders)
+                {
+                    string badge = o.Status switch
+                    {
+                        "Pending" => "bg-warning",
+                        "Paid" => "bg-info",
+                        "Shipped" => "bg-primary",
+                        "Completed" => "bg-success",
+                        "Canceled" => "bg-secondary",
+                        _ => "bg-light text-dark"
+                    };
+                    <tr>
+                        <td>#@o.Id</td>
+                        <td>@(((DateTime)o.CreatedAt).ToString("dd/MM/yyyy HH:mm"))</td>
+                        <td>@o.ItemsCount</td>
+                        <td class="text-end">@(((decimal)o.Total).ToString("#,0")) ₫</td>
+                        <td><span class="badge @badge">@o.Status</span></td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-outline-secondary"
+                               asp-action="Details" asp-route-id="@o.Id">
+                                Xem chi tiết
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

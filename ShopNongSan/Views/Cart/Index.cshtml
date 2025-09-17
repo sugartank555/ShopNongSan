@@ -1,0 +1,70 @@
+﻿@model ShopNongSan.ViewModels.CartVM
+@{
+    ViewData["Title"] = "Giỏ hàng";
+}
+
+@if (Model == null || !Model.Lines.Any())
+{
+    <div class="alert alert-info">Giỏ hàng trống. <a asp-controller="Home" asp-action="Index">Tiếp tục mua sắm</a>.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Ảnh</th>
+                    <th>Tên</th>
+                    <th class="text-end">Đơn giá</th>
+                    <th class="text-center">SL</th>
+                    <th class="text-end">Thành tiền</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var l in Model.Lines)
+                {
+                    <tr>
+                        <td style="width:90px">
+                            <img src="@(string.IsNullOrEmpty(l.ImageUrl) ? "/images/placeholder.png" : l.ImageUrl)"
+                                 class="rounded" style="width:80px;height:80px;object-fit:cover;">
+                        </td>
+                        <td>@l.Name</td>
+                        <td class="text-end">@l.Price.ToString("#,0") ₫</td>
+                        <td class="text-center" style="width:170px;">
+                            <form asp-controller="Cart" asp-action="Update" method="post" class="d-inline-flex gap-2">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="productId" value="@l.ProductId" />
+                                <input type="number" name="qty" min="1" value="@l.Qty" class="form-control" style="width:80px;">
+                                <button class="btn btn-sm btn-outline-secondary">Cập nhật</button>
+                            </form>
+                        </td>
+                        <td class="text-end">@l.Subtotal.ToString("#,0") ₫</td>
+                        <td class="text-end">
+                            <form asp-controller="Cart" asp-action="Remove" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="productId" value="@l.ProductId" />
+                                <button class="btn btn-sm btn-outline-danger">Xóa</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th colspan="4" class="text-end">Tổng:</th>
+                    <th class="text-end">@Model.Total.ToString("#,0") ₫</th>
+                    <th></th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-between">
+        <form asp-controller="Cart" asp-action="Clear" method="post">
+            @Html.AntiForgeryToken()
+            <button class="btn btn-outline-secondary">Xóa giỏ</button>
+        </form>
+        <a class="btn btn-primary" asp-controller="Checkout" asp-action="Index">Thanh toán</a>
+    </div>
+}
