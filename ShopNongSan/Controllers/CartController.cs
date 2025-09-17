@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShopNongSan.Data;
 using ShopNongSan.Services;
@@ -6,8 +7,10 @@ using ShopNongSan.ViewModels;
 
 namespace ShopNongSan.Controllers
 {
+   [Authorize]
     public class CartController : Controller
     {
+      
         private readonly ApplicationDbContext _db;
         private readonly ICartSession _cart;
 

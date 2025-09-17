@@ -45,5 +45,11 @@ namespace ShopNongSan.Controllers
             return View(new ProductDetailVM { Product = p, Related = related });
             // View: Views/Home/Product.cshtml
         }
+        public async Task<IActionResult> CategoryList()
+        {
+            var cats = await _db.Categories.AsNoTracking().OrderBy(c => c.Name).ToListAsync();
+            return PartialView("_CategoryListPartial", cats);
+        }
+
     }
 }

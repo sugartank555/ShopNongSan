@@ -19,5 +19,6 @@ namespace ShopNongSan.Models
         public Category Category { get; set; } = default!;
 
         public bool IsOrganic { get; set; } = true; // Hữu cơ/sạch
+
     }
 }

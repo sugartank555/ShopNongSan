@@ -15,6 +15,7 @@ namespace ShopNongSan.Data
         public DbSet<CartItem> CartItems => Set<CartItem>();
         public DbSet<Order> Orders => Set<Order>();
         public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+       
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
