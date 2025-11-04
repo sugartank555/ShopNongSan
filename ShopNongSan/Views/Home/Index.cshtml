@@ -1,0 +1,21 @@
+﻿@{
+    ViewData["Title"] = "Trang chủ";
+    var latest = ViewBag.Latest as IEnumerable<ShopNongSan.Models.Product> ?? [];
+}
+<div class="container my-4">
+    <h2 class="mb-3">Sản phẩm mới</h2>
+    <div class="row">
+        @foreach (var p in latest)
+        {
+            <div class="col-md-3 mb-3">
+                <div class="card h-100">
+                    <img class="card-img-top" src="@(!string.IsNullOrEmpty(p.ImageUrl) ? p.ImageUrl : "/images/noimg.png")" alt="@p.Name" />
+                    <div class="card-body">
+                        <div class="fw-bold">@p.Name</div>
+                        <div>@String.Format("{0:N0} đ", p.Price)</div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
