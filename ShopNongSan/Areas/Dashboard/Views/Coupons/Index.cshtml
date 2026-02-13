@@ -1,0 +1,67 @@
+﻿@model IEnumerable<ShopNongSan.Models.Coupon>
+@{
+    
+    ViewData["Title"] = "Danh sách mã giảm giá";
+}
+
+<div class="container-fluid px-4">
+    <h2 class="mt-4 mb-3 text-success"><i class="fas fa-ticket-alt"></i></h2>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    <a asp-action="Create" class="btn btn-primary mb-3"><i class="fas fa-plus"></i> Thêm mã</a>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-bordered table-hover mb-0">
+                <thead class="table-success text-center">
+                    <tr>
+                        <th>Mã</th>
+                        <th>Loại</th>
+                        <th>Giá trị</th>
+                        <th>Ngày hết hạn</th>
+                        <th>Trạng thái</th>
+                        <th style="width:150px"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold">@c.Code</td>
+                            <td>@(c.DiscountType == "Percent" ? "Phần trăm (%)" : "Giảm cố định")</td>
+                            <td>
+                                @(c.DiscountType == "Percent"
+                                                            ? $"{c.DiscountValue}%"
+                                                            : $"{String.Format("{0:N0}", c.DiscountValue)} đ")
+                        </td>
+                        <td>@c.ExpiryDate.ToString("dd/MM/yyyy")</td>
+                        <td>
+                            @if (c.IsActive)
+                                {
+                                    <span class="badge bg-success">Kích hoạt</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Ngưng</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                <a asp-action="Edit" asp-route-id="@c.Id" class="btn btn-sm btn-warning me-1">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form asp-action="Delete" asp-route-id="@c.Id" method="post" class="d-inline"
+                                      onsubmit="return confirm('Xóa mã @c.Code?');">
+                                    <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

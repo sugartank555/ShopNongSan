@@ -1,0 +1,125 @@
+﻿@model ShopNongSan.Models.Product
+
+@{
+    var lots = ViewBag.Lots as List<ShopNongSan.Models.BatchLot>;
+}
+
+
+<div class="container py-5">
+
+    <div class="row">
+        <!-- Ảnh sản phẩm -->
+        <div class="col-md-5">
+            <div class="border rounded p-3 bg-white shadow-sm">
+                <img src="@Model.ImageUrl" class="img-fluid rounded" style="max-height:420px; object-fit:cover" />
+            </div>
+        </div>
+
+        <!-- Thông tin chi tiết -->
+        <div class="col-md-7">
+            <h2 class="fw-bold mb-2">@Model.Name</h2>
+
+            <p class="text-muted mb-1">
+                Danh mục:
+                <span class="badge bg-success">@Model.Category?.Name</span>
+            </p>
+
+            <h3 class="text-danger fw-bold mb-3">
+                @String.Format("{0:N0} đ", Model.Price)
+            </h3>
+
+            @if (!string.IsNullOrEmpty(Model.Description))
+            {
+                <p class="text-secondary" style="line-height:1.7">@Model.Description</p>
+            }
+
+            <hr />
+
+            <!-- Chọn số lượng -->
+            <div class="mb-3">
+                <label class="fw-semibold">Số lượng</label>
+                <input type="number" id="qty" min="1" value="1" class="form-control w-25" />
+            </div>
+
+            <!-- Nút thêm giỏ hàng -->
+            <form asp-controller="Cart" asp-action="Add" method="post" class="d-flex gap-3">
+                <input type="hidden" name="id" value="@Model.Id" />
+                <input type="hidden" name="qty" id="qtyInput" value="1" />
+
+                <button class="btn btn-success btn-lg px-4">
+                    <i class="fa-solid fa-cart-plus me-2"></i> Thêm vào giỏ hàng
+                </button>
+
+                <a asp-controller="Checkout" asp-action="Index" class="btn btn-outline-primary btn-lg px-4">
+                    Mua ngay
+                </a>
+            </form>
+
+            <script>
+                document.getElementById("qty").addEventListener("change", function () {
+                    document.getElementById("qtyInput").value = this.value;
+                });
+            </script>
+
+        </div>
+    </div>
+
+    <!-- Thông tin lô sản xuất -->
+    <div class="mt-5">
+        <h4 class="fw-bold mb-3">Thông tin lô sản xuất</h4>
+
+        @if (lots != null && lots.Any())
+        {
+            <table class="table table-bordered table-striped">
+                <thead class="table-success">
+                    <tr>
+                        <th>Mã lô</th>
+                        <th>Nông trại</th>
+                        <th>Ngày thu hoạch/ sản xuất</th>
+                        <th>Ngày hết hạn</th>
+                        <th>Chứng nhận</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var b in lots)
+                    {
+                        <tr>
+                            <td>@b.LotCode</td>
+                            <td>@b.FarmName</td>
+                            <td>@b.HarvestDate.ToString("dd/MM/yyyy")</td>
+                            <td>@(b.ExpireDate?.ToString("dd/MM/yyyy") ?? "-")</td>
+                            <td>@(string.IsNullOrEmpty(b.Certification) ? "-" : b.Certification)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p class="text-muted">Sản phẩm chưa có thông tin lô sản xuất.</p>
+        }
+    </div>
+
+</div>
+
+<!-- Các sản phẩm liên quan -->
+<div class="container py-4">
+    <h4 class="fw-bold mb-3">Sản phẩm liên quan</h4>
+
+    <div class="row">
+        @foreach (var item in ViewBag.Related as List<ShopNongSan.Models.Product> ?? new())
+        {
+            <div class="col-6 col-md-3 mb-3">
+                <a asp-controller="Shop" asp-action="Details" asp-route-id="@item.Id"
+                   class="card shadow-sm border-0 h-100 text-dark text-decoration-none">
+
+                    <img src="@item.ImageUrl" class="card-img-top" style="height:180px; object-fit:cover" />
+                    <div class="card-body">
+                        <h6 class="fw-semibold">@item.Name</h6>
+                        <p class="text-danger fw-bold mb-0">@String.Format("{0:N0} đ", item.Price)</p>
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+</div>

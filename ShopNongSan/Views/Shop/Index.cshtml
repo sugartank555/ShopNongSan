@@ -1,0 +1,123 @@
+﻿@model IEnumerable<ShopNongSan.Models.Product>
+@{
+    ViewData["Title"] = "Cửa hàng";
+    var categories = ViewBag.Categories as IEnumerable<ShopNongSan.Models.Category>;
+}
+
+
+<style>
+    .product-card:hover {
+        transform: translateY(-5px);
+        transition: 0.3s ease;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    }
+
+    .category-pill {
+        padding: 6px 15px;
+        border-radius: 20px;
+        font-size: 14px;
+    }
+
+        .category-pill.active {
+            background-color: #28a745;
+            color: #fff;
+        }
+
+        .category-pill:not(.active) {
+            border: 1px solid #28a745;
+            color: #28a745;
+        }
+
+            .category-pill:not(.active):hover {
+                background-color: #28a745;
+                color: #fff;
+            }
+
+    .product-price {
+        font-size: 18px;
+        font-weight: bold;
+        color: #e63946;
+    }
+</style>
+
+<div class="container py-4">
+
+    <!-- 🔎 TÌM KIẾM -->
+    <form method="get" class="input-group mb-4 shadow-sm">
+        <input type="text" name="q" value="@ViewBag.Query" class="form-control" placeholder="Tìm kiếm sản phẩm...">
+        <button class="btn btn-success"><i class="fa fa-search"></i></button>
+    </form>
+
+    <!-- 🏷 LỌC DANH MỤC -->
+    <div class="mb-4 d-flex flex-wrap gap-2">
+        <a asp-controller="Shop" asp-action="Index"
+           class="category-pill @(ViewBag.CategoryId == null ? "active" : "")">
+            Tất cả
+        </a>
+
+        @foreach (var c in categories)
+        {
+            <a asp-controller="Shop" asp-action="Index" asp-route-categoryId="@c.Id"
+               class="category-pill @(ViewBag.CategoryId == c.Id ? "active" : "")">
+                @c.Name
+            </a>
+        }
+    </div>
+
+    <!-- 🔽 SẮP XẾP -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold">Tất cả sản phẩm</h5>
+
+        <form method="get" class="d-flex align-items-center">
+            <input type="hidden" name="q" value="@ViewBag.Query" />
+            <input type="hidden" name="categoryId" value="@ViewBag.CategoryId" />
+
+            <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="">Sắp xếp</option>
+                <option value="newest" selected="@("newest" == ViewBag.Sort)">Mới nhất</option>
+                <option value="priceAsc" selected="@("priceAsc" == ViewBag.Sort)">Giá tăng dần</option>
+                <option value="priceDesc" selected="@("priceDesc" == ViewBag.Sort)">Giá giảm dần</option>
+            </select>
+        </form>
+    </div>
+
+    <!-- 🛒 GRID SẢN PHẨM -->
+    <div class="row g-4">
+
+        @foreach (var p in Model)
+        {
+            <div class="col-6 col-md-3">
+                <div class="card product-card h-100 border-0 shadow-sm rounded-3">
+
+                    <a asp-controller="Shop" asp-action="Details" asp-route-id="@p.Id">
+                        <img src="@(!string.IsNullOrEmpty(p.ImageUrl) ? p.ImageUrl : "/images/noimg.png")"
+                             class="card-img-top rounded-top"
+                             style="height:220px; object-fit:cover">
+                    </a>
+
+                    <div class="card-body">
+                        <h6 class="fw-semibold text-dark">@p.Name</h6>
+
+                        <div class="product-price mb-2">
+                            @String.Format("{0:N0} đ", p.Price)
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Details" asp-route-id="@p.Id"
+                               class="btn btn-outline-success btn-sm">
+                                Xem chi tiết
+                            </a>
+
+                            <form asp-controller="Cart" asp-action="Add" method="post">
+                                <input type="hidden" name="id" value="@p.Id" />
+                                <input type="hidden" name="qty" value="1" />
+                                <button class="btn btn-success btn-sm"><i class="fa fa-cart-plus">Thêm giỏ hàng</i></button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>
