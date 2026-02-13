@@ -1,0 +1,63 @@
+﻿@model IEnumerable<ShopNongSan.Models.Category>
+@{
+    ViewData["Title"] = "";
+}
+
+<div class="container-fluid px-4">
+    <h2 class="mt-4 mb-3 text-success"><i class="fas fa-leaf"></i> Quản lý danh mục</h2>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    <a asp-action="Create" class="btn btn-primary mb-3"><i class="fas fa-plus"></i> Thêm danh mục</a>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-bordered table-hover mb-0 align-middle">
+                <thead class="table-success text-center">
+                    <tr>
+                        <th>Ảnh</th>
+                        <th>Tên danh mục</th>
+                        <th>Mô tả</th>
+                        <th>Trạng thái</th>
+                        <th style="width:150px"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in Model)
+                    {
+                        <tr>
+                            <td class="text-center" style="width:90px;">
+                                <img src="@(!string.IsNullOrEmpty(c.ImageUrl) ? c.ImageUrl : "/images/noimg.png")"
+                                     style="width:70px;height:70px;object-fit:cover;border-radius:8px;" />
+                            </td>
+                            <td>@c.Name</td>
+                            <td>@c.Description</td>
+                            <td class="text-center">
+                                @if (c.IsActive)
+                                {
+                                    <span class="badge bg-success">Hoạt động</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Ẩn</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                <a asp-action="Edit" asp-route-id="@c.Id" class="btn btn-sm btn-warning me-1">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form asp-action="Delete" asp-route-id="@c.Id" method="post" class="d-inline"
+                                      onsubmit="return confirm('Xóa danh mục @c.Name?');">
+                                    <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

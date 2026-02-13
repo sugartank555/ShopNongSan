@@ -2,25 +2,53 @@
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 
-<ul class="navbar-nav">
 @if (SignInManager.IsSignedIn(User))
 {
-    <li class="nav-item">
-        <a  class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @User.Identity?.Name!</a>
+    <!-- Khi user đã đăng nhập -->
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown"
+           role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="icon-user text-success me-1"></i>
+            <span class="fw-semibold">@User.Identity?.Name</span>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userDropdown">
+            <li>
+                <a class="dropdown-item" asp-area="Identity" asp-page="/Account/Manage/Index">
+                    <i class="icon-settings text-secondary"></i> Hồ sơ cá nhân
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <form asp-area="Identity" asp-page="/Account/Logout"
+                      asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })"
+                      method="post" class="dropdown-item p-0">
+                    <button type="submit" class="btn btn-link text-start w-100 text-danger">
+                        <i class="icon-sign-out"></i> Đăng xuất
+                    </button>
+                </form>
+            </li>
+          
+        </ul>
+  
     </li>
-    <li class="nav-item">
-        <form  class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
-            <button  type="submit" class="nav-link btn btn-link text-dark">Logout</button>
-        </form>
+    <li>
+        <a class="nav-link" asp-area="Identity" asp-page="/Account/Logout">
+            <i class="icon-user-plus text-success"> Đăng xuất</i> Đăng xuất
+        </a>
     </li>
 }
 else
 {
+    <!-- Khi user chưa đăng nhập -->
     <li class="nav-item">
-        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Register">Register</a>
+        <a class="nav-link" asp-area="Identity" asp-page="/Account/Login">
+            <i class="icon-login text-success"></i> Đăng nhập
+        </a>
     </li>
     <li class="nav-item">
-        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Login">Login</a>
+        <a class="nav-link" asp-area="Identity" asp-page="/Account/Register">
+            <i class="icon-user-plus text-success"></i> Đăng ký
+        </a>
     </li>
+    
 }
-</ul>

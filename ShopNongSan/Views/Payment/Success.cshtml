@@ -1,0 +1,11 @@
+﻿@{
+    ViewData["Title"] = "Thanh toán thành công";
+}
+
+<div class="container py-5 text-center">
+    <h2 class="text-success fw-bold">✔ @ViewBag.Message</h2>
+
+    <a asp-controller="Orders" asp-action="Index" class="btn btn-primary mt-3">
+        Xem đơn hàng của tôi
+    </a>
+</div>

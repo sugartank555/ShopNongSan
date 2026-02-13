@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ShopNongSan.Data;
+using ShopNongSan.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,8 +31,13 @@ builder.Services.ConfigureApplicationCookie(opt =>
     opt.LoginPath = "/Identity/Account/Login";
     opt.AccessDeniedPath = "/Identity/Account/AccessDenied";
 });
+builder.Services.Configure<PayOSSettings>(
+    builder.Configuration.GetSection("PayOS"));
+
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddSession();
+
 
 var app = builder.Build();
 
@@ -52,7 +58,7 @@ app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
-
+app.UseSession();
 // Route cho Areas (Dashboard)
 app.MapControllerRoute(
     name: "areas",

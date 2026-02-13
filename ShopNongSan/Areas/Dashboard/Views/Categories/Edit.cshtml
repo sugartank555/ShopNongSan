@@ -1,0 +1,42 @@
+﻿@model ShopNongSan.Models.Category
+@{
+    ViewData["Title"] = "Sửa danh mục";
+}
+
+<div class="container-fluid px-4">
+    <h2 class="mt-4 mb-3 text-warning"><i class="fas fa-edit"></i> Sửa danh mục</h2>
+
+    <form asp-action="Edit" method="post" enctype="multipart/form-data" class="card shadow-sm p-4">
+        <input type="hidden" asp-for="Id" />
+        <div class="mb-3">
+            <label asp-for="Name" class="form-label"></label>
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Description" class="form-label"></label>
+            <textarea asp-for="Description" class="form-control"></textarea>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Ảnh hiện tại</label><br />
+            <img src="@(!string.IsNullOrEmpty(Model.ImageUrl) ? Model.ImageUrl : "/images/noimg.png")"
+                 style="width:100px;height:100px;object-fit:cover;border-radius:8px;" />
+        </div>
+        <div class="mb-3">
+            <label asp-for="ImageUrl" class="form-label">Đổi ảnh mới</label>
+            <input type="file" name="imageFile" class="form-control" />
+        </div>
+        <div class="form-check mb-3">
+            <input asp-for="IsActive" class="form-check-input" />
+            <label asp-for="IsActive" class="form-check-label">Kích hoạt</label>
+        </div>
+        <div>
+            <button class="btn btn-warning"><i class="fas fa-save"></i> Cập nhật</button>
+            <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

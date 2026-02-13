@@ -1,0 +1,74 @@
+﻿@model IEnumerable<ShopNongSan.Models.BatchLot>
+@{
+    ViewData["Title"] = "Quản lý lô hàng";
+}
+
+<div class="container-fluid px-4">
+    <h2 class="mt-4 mb-3 text-success"><i class="fas fa-tractor"></i> Quản lý lô hàng</h2>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <a asp-action="Create" class="btn btn-primary mb-3">
+        <i class="fas fa-plus-circle"></i> Thêm lô hàng
+    </a>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <table class="table table-striped table-hover align-middle mb-0">
+                <thead class="table-success text-center">
+                    <tr>
+                        <th>Mã lô</th>
+                        <th>Nông trại</th>
+                        <th>Sản phẩm</th>
+                        <th>Thu hoạch</th>
+                        <th>Hết hạn</th>
+                        <th>Nhập kho</th>
+                        <th>Đã bán</th>
+                        <th>Chứng nhận</th>
+                        <th style="width:130px;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Any())
+                    {
+                        foreach (var b in Model)
+                        {
+                            bool expired = b.ExpireDate.HasValue && b.ExpireDate.Value < DateTime.Today;
+                            <tr class="@(expired ? "table-warning" : "")">
+                                <td class="fw-bold">@b.LotCode</td>
+                                <td>@b.FarmName</td>
+                                <td>@b.Product?.Name</td>
+                                <td class="text-center">@b.HarvestDate.ToString("dd/MM/yyyy")</td>
+                                <td class="text-center">@b.ExpireDate?.ToString("dd/MM/yyyy")</td>
+                                <td class="text-center">@b.QuantityIn</td>
+                                <td class="text-center">@b.QuantitySold</td>
+                                <td>@b.Certification</td>
+                                <td class="text-center">
+                                    <a asp-action="Edit" asp-route-id="@b.Id" class="btn btn-sm btn-warning me-1" title="Sửa">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form asp-action="Delete" asp-route-id="@b.Id" method="post" class="d-inline"
+                                          onsubmit="return confirm('Xóa lô hàng @b.LotCode ?');">
+                                        <button class="btn btn-sm btn-danger" title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="9" class="text-center text-muted py-4">Chưa có lô hàng nào.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

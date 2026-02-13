@@ -1,59 +1,142 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - ShopNongSan</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/ShopNongSan.styles.css" asp-append-version="true" />
+    <title>@ViewData["Title"] - Nông sản sạch</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link href="https://fonts.googleapis.com/css?family=Poppins:200,300,400,500,600,700,800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Lora:400,400i,700,700i&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Amatic+SC:400,700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="~/css/open-iconic-bootstrap.min.css">
+    <link rel="stylesheet" href="~/css/animate.css">
+    <link rel="stylesheet" href="~/css/owl.carousel.min.css">
+    <link rel="stylesheet" href="~/css/owl.theme.default.min.css">
+    <link rel="stylesheet" href="~/css/magnific-popup.css">
+    <link rel="stylesheet" href="~/css/aos.css">
+    <link rel="stylesheet" href="~/css/ionicons.min.css">
+    <link rel="stylesheet" href="~/css/bootstrap-datepicker.css">
+    <link rel="stylesheet" href="~/css/jquery.timepicker.css">
+    <link rel="stylesheet" href="~/css/flaticon.css">
+    <link rel="stylesheet" href="~/css/icomoon.css">
+    <link rel="stylesheet" href="~/css/style.css">
 </head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">ShopNongSan</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                    <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+<body class="goto-here">
+    <div class="py-1 bg-primary">
+        <div class="container">
+            <div class="row no-gutters d-flex align-items-start align-items-center px-md-0">
+                <div class="col-lg-12 d-block">
+                    <div class="row d-flex">
+                        <div class="col-md pr-4 d-flex topper align-items-center">
+                            <div class="icon mr-2 d-flex justify-content-center align-items-center"><span class="icon-phone2"></span></div>
+                            <span class="text">+84 395 604 676</span>
+                        </div>
+                        <div class="col-md pr-4 d-flex topper align-items-center">
+                            <div class="icon mr-2 d-flex justify-content-center align-items-center"><span class="icon-paper-plane"></span></div>
+                            <span class="text">Sugar</span>
+                        </div>
+                        <div class="col-md-5 pr-4 d-flex topper align-items-center text-lg-right">
+                            <span class="text">Miễn phí vận chuyển cho đơn trên 500.000đ</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <nav class="navbar navbar-expand-lg navbar-dark ftco_navbar bg-dark ftco-navbar-light" id="ftco-navbar">
+        <div class="container">
+            <a class="navbar-brand" asp-controller="Home" asp-action="Index">Nông sản sạch</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#ftco-nav">
+                <span class="oi oi-menu"></span> Menu
+            </button>
+
+            <div class="collapse navbar-collapse" id="ftco-nav">
+                <ul class="navbar-nav ml-auto align-items-center">
+                    <li class="nav-item"><a asp-controller="Home" asp-action="Index" class="nav-link">Trang chủ</a></li>
+                    <li class="nav-item"><a asp-controller="Shop" asp-action="Index" class="nav-link">Sản phẩm</a></li>
+                    <li class="nav-item"><a asp-controller="Orders" asp-action="Index" class="nav-link">Đơn hàng</a></li>
+                    <li class="nav-item"><a asp-controller="Cart" asp-action="Index" class="nav-link"><span class="icon-shopping_cart"></span></a></li>
 
                     @if (User.IsInRole("Admin") || User.IsInRole("Staff"))
                     {
-                        <li class="nav-item"><a class="nav-link" asp-area="Dashboard" asp-controller="Home" asp-action="Index">Quản trị</a></li>
+                        <li class="nav-item"><a asp-area="Dashboard" asp-controller="Home" asp-action="Index" class="nav-link">Quản trị</a></li>
                     }
 
+                    
                     <partial name="_LoginPartial" />
+                </ul>
 
-                    <partial name="_LoginPartial" />
+            </div>
+        </div>
+    </nav>
+
+    @RenderBody()
+
+    <footer class="ftco-footer ftco-section">
+        <div class="container">
+            <div class="row mb-5">
+                <div class="col-md">
+                    <div class="ftco-footer-widget mb-4">
+                        <h2 class="ftco-heading-2">Nông sản sạch</h2>
+                        <p>Cung cấp rau, củ, quả sạch và đặc sản Việt – minh bạch nguồn gốc, đảm bảo an toàn thực phẩm.</p>
+                        <ul class="ftco-footer-social list-unstyled mt-3">
+                            <li><a href="#"><span class="icon-facebook"></span></a></li>
+                            <li><a href="#"><span class="icon-instagram"></span></a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-md">
+                    <div class="ftco-footer-widget mb-4 ml-md-5">
+                        <h2 class="ftco-heading-2">Liên kết nhanh</h2>
+                        <ul class="list-unstyled">
+                            <li><a asp-controller="Shop" asp-action="Index" class="py-2 d-block">Cửa hàng</a></li>
+                            <li><a asp-controller="Orders" asp-action="Index" class="py-2 d-block">Đơn hàng của tôi</a></li>
+                            
+                            <li><a asp-controller="Home" asp-action="Index" class="py-2 d-block">Về chúng tôi</a></li>
+                            <li><a asp-controller="Home" asp-action="Index" class="py-2 d-block">Liên hệ</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-md">
+                    <div class="ftco-footer-widget mb-4">
+                        <h2 class="ftco-heading-2">Trợ giúp</h2>
+                        <ul class="list-unstyled">
+                            <li><a href="#" class="py-2 d-block">Chính sách đổi trả</a></li>
+                            <li><a href="#" class="py-2 d-block">Chính sách giao hàng</a></li>
+                            <li><a href="#" class="py-2 d-block">Điều khoản sử dụng</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-md">
+                    <div class="ftco-footer-widget mb-4">
+                        <h2 class="ftco-heading-2">Liên hệ</h2>
+                        <ul class="list-unstyled">
+                            <li><span class="icon icon-map-marker"></span> 123 Lê Lợi, TP.HCM</li>
+                            <li><span class="icon icon-phone"></span> +84 395 604 676</li>
+                            <li><span class="icon icon-envelope"></span> nongsanviet@shop.com</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
-
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - ShopNongSan - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            <div class="row text-center">
+                <div class="col-md-12">
+                    <p>© @DateTime.Now.Year - Nông sản sạch | Thiết kế bởi <a href="https://colorlib.com" target="_blank">Colorlib</a></p>
+                </div>
+            </div>
         </div>
     </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script src="~/js/jquery.min.js"></script>
+    <script src="~/js/bootstrap.min.js"></script>
+    <script src="~/js/owl.carousel.min.js"></script>
+    <script src="~/js/aos.js"></script>
+    <script src="~/js/main.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

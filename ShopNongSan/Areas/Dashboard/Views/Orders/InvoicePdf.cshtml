@@ -1,0 +1,50 @@
+﻿@model ShopNongSan.Models.Order
+
+@{
+    Layout = null;
+    var subtotal = Model.Items.Sum(i => i.UnitPrice * i.Quantity);
+    var total = subtotal - Model.DiscountAmount;
+}
+
+<div style="font-family:Arial; padding:20px;">
+
+    <h2 style="color:#28a745;">HÓA ĐƠN #@Model.Id</h2>
+    <p><strong>Ngày:</strong> @Model.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
+
+    <h3>Thông tin khách hàng</h3>
+    <p><strong>Họ tên:</strong> @Model.CustomerName</p>
+    <p><strong>Điện thoại:</strong> @Model.Phone</p>
+    <p><strong>Email:</strong> @Model.Email</p>
+    <p><strong>Địa chỉ:</strong> @Model.Address</p>
+
+    <h3>Chi tiết sản phẩm</h3>
+    <table width="100%" border="1" cellspacing="0" cellpadding="6">
+        <thead style="background:#d4edda;">
+            <tr>
+                <th>Sản phẩm</th>
+                <th>SL</th>
+                <th>Đơn giá</th>
+                <th>Thành tiền</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Items)
+            {
+                <tr>
+                    <td>@item.Product.Name</td>
+                    <td align="center">@item.Quantity</td>
+                    <td align="right">@String.Format("{0:N0} đ", item.UnitPrice)</td>
+                    <td align="right">@String.Format("{0:N0} đ", item.UnitPrice * item.Quantity)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h3>Tổng tiền</h3>
+
+    <p><strong>Tạm tính:</strong> @String.Format("{0:N0} đ", subtotal)</p>
+    <p><strong>Giảm giá:</strong> -@String.Format("{0:N0} đ", Model.DiscountAmount)</p>
+    <hr />
+    <p><strong>Tổng thanh toán:</strong> @String.Format("{0:N0} đ", total)</p>
+
+</div>

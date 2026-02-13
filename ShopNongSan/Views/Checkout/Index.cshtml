@@ -1,0 +1,48 @@
+﻿@model ShopNongSan.Models.ViewModels.CheckoutViewModel
+
+@{
+    var total = Model.CartItems.Sum(x => x.Total);
+}
+
+<div class="container py-4">
+
+    <h3 class="mb-4">Phương thức thanh toán</h3>
+
+    <form id="checkoutForm" asp-action="Confirm" method="post">
+
+        <div class="mb-3">
+            <label>Họ tên</label>
+            <input asp-for="FullName" class="form-control" />
+            <span asp-validation-for="FullName" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label>Số điện thoại</label>
+            <input asp-for="Phone" class="form-control" />
+            <span asp-validation-for="Phone" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label>Địa chỉ</label>
+            <input asp-for="Address" class="form-control" />
+            <span asp-validation-for="Address" class="text-danger"></span>
+        </div>
+
+        <!-- lưu phương thức -->
+        <input type="hidden" id="methodInput" asp-for="PaymentMethod" />
+
+        <!-- Nút COD -->
+        <button type="submit" class="btn btn-success w-100 mb-3"
+                onclick="document.getElementById('methodInput').value='COD'">
+            Xác nhận đặt hàng (COD)
+        </button>
+
+        <!-- Nút PayOS -->
+        <button type="submit" class="btn btn-primary w-100"
+                onclick="document.getElementById('methodInput').value='PAYOS'">
+            Thanh toán Online (PayOS)
+        </button>
+
+    </form>
+
+</div>

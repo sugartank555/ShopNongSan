@@ -1,0 +1,11 @@
+﻿@{
+    ViewData["Title"] = "Hủy thanh toán";
+}
+
+<div class="container py-5 text-center">
+    <h2 class="text-danger fw-bold">✘ @ViewBag.Message</h2>
+
+    <a asp-controller="Checkout" asp-action="Index" class="btn btn-warning mt-3">
+        Thử lại
+    </a>
+</div>

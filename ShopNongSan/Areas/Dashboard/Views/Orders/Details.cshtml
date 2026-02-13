@@ -1,0 +1,131 @@
+﻿@model ShopNongSan.Models.Order
+@using ShopNongSan.Models
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng";
+
+    string statusClass = "";
+    string statusText = "";
+
+    switch (Model.Status)
+    {
+        case OrderStatus.Pending:
+            statusClass = "bg-secondary";
+            statusText = "Chờ xác nhận";
+            break;
+
+        case OrderStatus.Processing:
+            statusClass = "bg-info text-dark";
+            statusText = "Đang xử lý";
+            break;
+
+        case OrderStatus.Shipped:
+            statusClass = "bg-primary";
+            statusText = "Đang giao hàng";
+            break;
+
+        case OrderStatus.Completed:
+            statusClass = "bg-success";
+            statusText = "Hoàn thành";
+            break;
+
+        case OrderStatus.Cancelled:
+            statusClass = "bg-danger";
+            statusText = "Đã hủy";
+            break;
+
+        // Nếu có trạng thái Paid
+        case OrderStatus.Paid:
+            statusClass = "bg-success";
+            statusText = "Đã thanh toán";
+            break;
+
+        default:
+            statusClass = "bg-light text-dark";
+            statusText = "Không xác định";
+            break;
+    }
+}
+<div class="container-fluid px-4">
+    <h2 class="mt-4 mb-3 text-success">
+        <i class="fas fa-info-circle"></i> Chi tiết đơn hàng #@Model.Id
+    </h2>
+
+    <!-- Thông tin khách hàng -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-light fw-bold">Thông tin khách hàng</div>
+        <div class="card-body">
+            <p><b>Họ tên:</b> @Model.CustomerName</p>
+            <p><b>Email:</b> @Model.Email</p>
+            <p><b>Điện thoại:</b> @Model.Phone</p>
+            <p><b>Địa chỉ:</b> @Model.Address</p>
+            <p><b>Ngày đặt:</b> @Model.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
+
+            <p>
+                <b>Trạng thái:</b>
+                <span class="badge @statusClass px-3 py-2">@statusText</span>
+            </p>
+            <a asp-action="Invoice" asp-route-id="@Model.Id" class="btn btn-danger mt-3">
+                <i class="fa fa-file-pdf"></i> Xuất hóa đơn PDF
+            </a>
+
+        </div>
+    </div>
+
+    <!-- Chi tiết sản phẩm -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-light fw-bold">Chi tiết sản phẩm</div>
+        <div class="card-body p-0">
+            <table class="table table-bordered mb-0">
+                <thead class="table-success text-center">
+                    <tr>
+                        <th>Sản phẩm</th>
+                        <th>Số lượng</th>
+                        <th>Đơn giá</th>
+                        <th>Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var i in Model.Items)
+                    {
+                        <tr>
+                            <td>@i.Product?.Name</td>
+                            <td class="text-center">@i.Quantity</td>
+                            <td class="text-end">@String.Format("{0:N0} đ", i.UnitPrice)</td>
+                            <td class="text-end">@String.Format("{0:N0} đ", i.Quantity * i.UnitPrice)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Tổng cộng -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-light fw-bold">Tổng cộng</div>
+        <div class="card-body">
+            <p>
+                <b>Tạm tính:</b>
+                @String.Format("{0:N0} đ", Model.Items.Sum(i => i.Quantity * i.UnitPrice))
+            </p>
+
+            @if (!string.IsNullOrEmpty(Model.CouponCode))
+            {
+                <p><b>Mã giảm giá:</b> @Model.CouponCode</p>
+                <p class="text-success">
+                    <b>Giảm:</b> -@String.Format("{0:N0} đ", Model.DiscountAmount)
+                </p>
+            }
+
+            <h4 class="text-end text-success">
+                Tổng thanh toán:
+                <b>@String.Format("{0:N0} đ", Model.Total)</b>
+            </h4>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Quay lại
+        </a>
+    </div>
+</div>

@@ -1,10 +1,149 @@
 ﻿@{
-    ViewData["Title"] = "Bảng điều khiển";
+ 
+    ViewData["Title"] = "Tổng quan hệ thống";
 }
-<h2 class="mb-3">Bảng điều khiển</h2>
-<div class="row g-3">
-    <div class="col-md-3"><div class="card p-3">Đơn hôm nay: <strong>—</strong></div></div>
-    <div class="col-md-3"><div class="card p-3">Doanh thu: <strong>—</strong></div></div>
-    <div class="col-md-3"><div class="card p-3">Tồn kho thấp: <strong>—</strong></div></div>
-    <div class="col-md-3"><div class="card p-3">Sắp hết hạn: <strong>—</strong></div></div>
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4 mb-4">Bảng điều khiển</h1>
+
+    <!-- Thống kê tổng quan -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs fw-bold text-success text-uppercase mb-1">
+                                Sản phẩm
+                            </div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">@ViewBag.TotalProducts</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-apple-alt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs fw-bold text-primary text-uppercase mb-1">
+                                Đơn hàng
+                            </div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">@ViewBag.TotalOrders</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs fw-bold text-warning text-uppercase mb-1">
+                                Doanh thu
+                            </div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">
+                                @String.Format("{0:N0} đ", ViewBag.TotalRevenue)
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-coins fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs fw-bold text-danger text-uppercase mb-1">
+                                Khách hàng
+                            </div>
+                            <div class="h5 mb-0 fw-bold text-gray-800">@ViewBag.TotalUsers</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Biểu đồ doanh thu -->
+    <div class="card mb-4 shadow">
+        <div class="card-header bg-success text-white">
+            <i class="fas fa-chart-line me-1"></i> Biểu đồ doanh thu (12 tháng gần nhất)
+        </div>
+        <div class="card-body">
+            <canvas id="revenueChart" height="90"></canvas>
+        </div>
+    </div>
+
+    <!-- Bảng hướng dẫn -->
+    <div class="card shadow">
+        <div class="card-header bg-light">
+            <i class="fas fa-info-circle"></i> Hướng dẫn nhanh
+        </div>
+        <div class="card-body">
+            <ul>
+                <li>Vào menu <b>Danh mục</b> để quản lý các loại sản phẩm (Rau củ, Trái cây,...)</li>
+                <li>Vào <b>Sản phẩm</b> để thêm hoặc chỉnh sửa thông tin hàng hóa</li>
+                <li>Kiểm tra <b>Đơn hàng</b> để xác nhận và cập nhật trạng thái</li>
+                <li>Sử dụng mục <b>Báo cáo</b> để xem thống kê chi tiết</li>
+            </ul>
+        </div>
+    </div>
 </div>
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.MonthLabels));
+        const data = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.MonthRevenue));
+
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Doanh thu (VNĐ)',
+                    data: data,
+                    borderColor: '#198754',
+                    backgroundColor: 'rgba(25,135,84,0.1)',
+                    tension: 0.3,
+                    fill: true,
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#198754'
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: val => val.toLocaleString('vi-VN') + ' đ'
+                        },
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+}
