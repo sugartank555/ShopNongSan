@@ -70,7 +70,14 @@ app.MapControllerRoute(
 
 app.MapRazorPages();
 
-// Seed Roles + 1 admin
+// 1. Migrate database trước
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+}
+
+// 2. Seed Roles + admin sau
 using (var scope = app.Services.CreateScope())
 {
     var sp = scope.ServiceProvider;
