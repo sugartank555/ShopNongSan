@@ -74,7 +74,16 @@ app.MapRazorPages();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    db.Database.Migrate();
+    try
+    {
+        db.Database.Migrate();
+        Console.WriteLine("✅ Migration thành công!");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Migration lỗi: {ex.Message}");
+        throw;
+    }
 }
 
 // 2. Seed Roles + admin sau
@@ -83,5 +92,7 @@ using (var scope = app.Services.CreateScope())
     var sp = scope.ServiceProvider;
     await RoleSeeder.Seed(sp);
 }
+
+app.Run();
 
 app.Run();
