@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShopNongSan.Data;
@@ -12,11 +14,45 @@ namespace ShopNongSan.Areas.Dashboard.Controllers
     {
         private readonly ApplicationDbContext _db;
         private readonly IWebHostEnvironment _env;
+        private readonly Cloudinary _cloudinary;
 
-        public ProductsController(ApplicationDbContext db, IWebHostEnvironment env)
+        public ProductsController(ApplicationDbContext db, IWebHostEnvironment env, IConfiguration config)
         {
             _db = db;
             _env = env;
+
+            var acc = new Account(
+                config["Cloudinary:CloudName"],
+                config["Cloudinary:ApiKey"],
+                config["Cloudinary:ApiSecret"]
+            );
+            _cloudinary = new Cloudinary(acc);
+        }
+
+        // ===== HELPER: Upload ảnh lên Cloudinary =====
+        private async Task<string?> UploadImageAsync(IFormFile file)
+        {
+            await using var stream = file.OpenReadStream();
+            var uploadParams = new ImageUploadParams
+            {
+                File = new FileDescription(file.FileName, stream),
+                Folder = "shopnongsan/products"
+            };
+            var result = await _cloudinary.UploadAsync(uploadParams);
+            return result.SecureUrl?.ToString();
+        }
+
+        // ===== HELPER: Xóa ảnh trên Cloudinary =====
+        private async Task DeleteImageAsync(string? imageUrl)
+        {
+            if (string.IsNullOrEmpty(imageUrl)) return;
+            // Lấy public_id từ URL
+            var uri = new Uri(imageUrl);
+            var segments = uri.AbsolutePath.Split('/');
+            var publicId = string.Join("/",
+                segments.SkipWhile(s => s != "shopnongsan").Take(2))
+                + "/" + Path.GetFileNameWithoutExtension(segments.Last());
+            await _cloudinary.DestroyAsync(new DeletionParams(publicId));
         }
 
         public async Task<IActionResult> Index()
@@ -47,18 +83,7 @@ namespace ShopNongSan.Areas.Dashboard.Controllers
             }
 
             if (imageFile != null && imageFile.Length > 0)
-            {
-                string folder = Path.Combine(_env.WebRootPath, "uploads/products");
-                if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
-
-                string fileName = Guid.NewGuid() + Path.GetExtension(imageFile.FileName);
-                string path = Path.Combine(folder, fileName);
-
-                using var stream = new FileStream(path, FileMode.Create);
-                await imageFile.CopyToAsync(stream);
-
-                m.ImageUrl = "/uploads/products/" + fileName;
-            }
+                m.ImageUrl = await UploadImageAsync(imageFile);
 
             _db.Add(m);
             await _db.SaveChangesAsync();
@@ -70,7 +95,6 @@ namespace ShopNongSan.Areas.Dashboard.Controllers
         {
             var m = await _db.Products.FindAsync(id);
             if (m == null) return NotFound();
-
             ViewBag.Categories = await _db.Categories.ToListAsync();
             return View(m);
         }
@@ -90,23 +114,8 @@ namespace ShopNongSan.Areas.Dashboard.Controllers
 
             if (imageFile != null && imageFile.Length > 0)
             {
-                string folder = Path.Combine(_env.WebRootPath, "uploads/products");
-                if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
-
-                // Xóa ảnh cũ
-                if (!string.IsNullOrEmpty(old.ImageUrl))
-                {
-                    var oldPath = Path.Combine(_env.WebRootPath, old.ImageUrl.TrimStart('/'));
-                    if (System.IO.File.Exists(oldPath))
-                        System.IO.File.Delete(oldPath);
-                }
-
-                string fileName = Guid.NewGuid() + Path.GetExtension(imageFile.FileName);
-                string newPath = Path.Combine(folder, fileName);
-                using var stream = new FileStream(newPath, FileMode.Create);
-                await imageFile.CopyToAsync(stream);
-
-                m.ImageUrl = "/uploads/products/" + fileName;
+                await DeleteImageAsync(old.ImageUrl);
+                m.ImageUrl = await UploadImageAsync(imageFile);
             }
             else
             {
@@ -125,18 +134,11 @@ namespace ShopNongSan.Areas.Dashboard.Controllers
             var m = await _db.Products.FindAsync(id);
             if (m != null)
             {
-                if (!string.IsNullOrEmpty(m.ImageUrl))
-                {
-                    var path = Path.Combine(_env.WebRootPath, m.ImageUrl.TrimStart('/'));
-                    if (System.IO.File.Exists(path))
-                        System.IO.File.Delete(path);
-                }
-
+                await DeleteImageAsync(m.ImageUrl);
                 _db.Remove(m);
                 await _db.SaveChangesAsync();
                 TempData["Success"] = "Đã xóa sản phẩm!";
             }
-
             return RedirectToAction(nameof(Index));
         }
     }
