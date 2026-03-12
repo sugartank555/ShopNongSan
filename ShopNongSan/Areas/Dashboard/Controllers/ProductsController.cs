@@ -46,15 +46,28 @@ namespace ShopNongSan.Areas.Dashboard.Controllers
         private async Task DeleteImageAsync(string? imageUrl)
         {
             if (string.IsNullOrEmpty(imageUrl)) return;
-            // Lấy public_id từ URL
-            var uri = new Uri(imageUrl);
-            var segments = uri.AbsolutePath.Split('/');
-            var publicId = string.Join("/",
-                segments.SkipWhile(s => s != "shopnongsan").Take(2))
-                + "/" + Path.GetFileNameWithoutExtension(segments.Last());
-            await _cloudinary.DestroyAsync(new DeletionParams(publicId));
+
+            try
+            {
+                var uri = new Uri(imageUrl);
+                var segments = uri.AbsolutePath.Split('/');
+
+                var startIndex = Array.IndexOf(segments, "shopnongsan");
+                if (startIndex < 0) return;
+
+                var publicIdParts = segments.Skip(startIndex).ToArray();
+                publicIdParts[^1] = Path.GetFileNameWithoutExtension(publicIdParts[^1]);
+
+                var publicId = string.Join("/", publicIdParts);
+                await _cloudinary.DestroyAsync(new DeletionParams(publicId));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi xóa ảnh Cloudinary: {ex.Message}");
+            }
         }
 
+        // ===== INDEX =====
         public async Task<IActionResult> Index()
         {
             var data = await _db.Products
@@ -64,6 +77,7 @@ namespace ShopNongSan.Areas.Dashboard.Controllers
             return View(data);
         }
 
+        // ===== CREATE =====
         public async Task<IActionResult> Create()
         {
             ViewBag.Categories = await _db.Categories
@@ -91,6 +105,7 @@ namespace ShopNongSan.Areas.Dashboard.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // ===== EDIT =====
         public async Task<IActionResult> Edit(int id)
         {
             var m = await _db.Products.FindAsync(id);
@@ -128,9 +143,25 @@ namespace ShopNongSan.Areas.Dashboard.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        [HttpPost]
+        // ===== DELETE =====
+        [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
+            var m = await _db.Products.FindAsync(id);
+            if (m == null) return NotFound();
+            return View(m);
+        }
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var hasOrders = await _db.OrderItems.AnyAsync(oi => oi.ProductId == id);
+            if (hasOrders)
+            {
+                TempData["Error"] = "Không thể xóa! Sản phẩm này đã có trong đơn hàng.";
+                return RedirectToAction(nameof(Index));
+            }
+
             var m = await _db.Products.FindAsync(id);
             if (m != null)
             {
