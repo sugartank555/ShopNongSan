@@ -21,8 +21,131 @@
     <link rel="stylesheet" href="~/css/flaticon.css">
     <link rel="stylesheet" href="~/css/icomoon.css">
     <link rel="stylesheet" href="~/css/style.css">
+
+    <style>
+        /* TOPBAR: ẩn dòng freeship trên màn nhỏ */
+        @@media (max-width: 575.98px) {
+            .topbar-hide-xs {
+                display: none !important;
+            }
+
+            .py-1.bg-primary .text {
+                font-size: 11px;
+            }
+        }
+
+        /* NAVBAR: icon giỏ hàng nhanh cạnh hamburger */
+        .navbar-cart-quick {
+            display: none;
+        }
+
+        @@media (max-width: 991.98px) {
+            .navbar-cart-quick {
+                display: flex;
+                align-items: center;
+                margin-left: auto;
+                margin-right: 8px;
+                color: #fff;
+                font-size: 22px;
+                text-decoration: none;
+            }
+            /* Ẩn icon giỏ trong menu đổ xuống tránh trùng */
+            .nav-cart-in-collapse {
+                display: none !important;
+            }
+            /* Menu collapse */
+            #ftco-nav {
+                background: #1c1c1c;
+                border-radius: 0 0 10px 10px;
+                padding: 6px 0 10px;
+            }
+
+                #ftco-nav .nav-link {
+                    padding: 11px 18px !important;
+                    border-bottom: 1px solid rgba(255,255,255,0.07);
+                    font-size: 15px;
+                    min-height: 44px;
+                    display: flex !important;
+                    align-items: center;
+                }
+
+                #ftco-nav .nav-item:last-child .nav-link {
+                    border-bottom: none;
+                }
+        }
+
+        /* BOTTOM NAV – chỉ mobile */
+        .mobile-bottom-nav {
+            display: none;
+        }
+
+        @@media (max-width: 767.98px) {
+            .mobile-bottom-nav {
+                display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                z-index: 1060;
+                background: #1a1a1a;
+                border-top: 1px solid rgba(255,255,255,0.12);
+                height: 56px;
+                padding-bottom: env(safe-area-inset-bottom, 0px);
+            }
+
+                .mobile-bottom-nav a {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    color: rgba(255,255,255,0.5);
+                    text-decoration: none;
+                    font-size: 9.5px;
+                    gap: 3px;
+                    transition: color .18s;
+                }
+
+                    .mobile-bottom-nav a:hover,
+                    .mobile-bottom-nav a.active {
+                        color: #28a745;
+                    }
+
+                .mobile-bottom-nav .bi {
+                    font-size: 19px;
+                    line-height: 1;
+                }
+
+            body {
+                padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+            }
+        }
+
+        /* FOOTER responsive */
+        @@media (max-width: 767.98px) {
+            .ftco-footer .col-md {
+                flex: 0 0 50%;
+                max-width: 50%;
+                margin-bottom: 24px;
+            }
+
+                .ftco-footer .col-md:first-child {
+                    flex: 0 0 100%;
+                    max-width: 100%;
+                }
+        }
+
+        @@media (max-width: 479.98px) {
+            .ftco-footer .col-md {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+        }
+    </style>
 </head>
 <body class="goto-here">
+
+    <!-- TOPBAR -->
     <div class="py-1 bg-primary">
         <div class="container">
             <div class="row no-gutters d-flex align-items-start align-items-center px-md-0">
@@ -36,7 +159,7 @@
                             <div class="icon mr-2 d-flex justify-content-center align-items-center"><span class="icon-paper-plane"></span></div>
                             <span class="text">Bùi Hải Đường</span>
                         </div>
-                        <div class="col-md-5 pr-4 d-flex topper align-items-center text-lg-right">
+                        <div class="col-md-5 pr-4 d-flex topper align-items-center text-lg-right topbar-hide-xs">
                             <span class="text">Miễn phí vận chuyển cho đơn trên 500.000đ</span>
                         </div>
                     </div>
@@ -45,10 +168,16 @@
         </div>
     </div>
 
-
+    <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg navbar-dark ftco_navbar bg-dark ftco-navbar-light" id="ftco-navbar">
         <div class="container">
             <a class="navbar-brand" asp-controller="Home" asp-action="Index">Nông sản sạch</a>
+
+            <!-- Icon giỏ hàng nhanh (chỉ mobile) -->
+            <a asp-controller="Cart" asp-action="Index" class="navbar-cart-quick" title="Giỏ hàng">
+                <span class="icon-shopping_cart"></span>
+            </a>
+
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#ftco-nav">
                 <span class="oi oi-menu"></span> Menu
             </button>
@@ -58,23 +187,24 @@
                     <li class="nav-item"><a asp-controller="Home" asp-action="Index" class="nav-link">Trang chủ</a></li>
                     <li class="nav-item"><a asp-controller="Shop" asp-action="Index" class="nav-link">Sản phẩm</a></li>
                     <li class="nav-item"><a asp-controller="Orders" asp-action="Index" class="nav-link">Đơn hàng</a></li>
-                    <li class="nav-item"><a asp-controller="Cart" asp-action="Index" class="nav-link"><span class="icon-shopping_cart"></span></a></li>
+                    <li class="nav-item nav-cart-in-collapse">
+                        <a asp-controller="Cart" asp-action="Index" class="nav-link"><span class="icon-shopping_cart"></span></a>
+                    </li>
 
                     @if (User.IsInRole("Admin") || User.IsInRole("Staff"))
                     {
                         <li class="nav-item"><a asp-area="Dashboard" asp-controller="Home" asp-action="Index" class="nav-link">Quản trị</a></li>
                     }
 
-                    
                     <partial name="_LoginPartial" />
                 </ul>
-
             </div>
         </div>
     </nav>
 
     @RenderBody()
 
+    <!-- FOOTER -->
     <footer class="ftco-footer ftco-section">
         <div class="container">
             <div class="row mb-5">
@@ -88,20 +218,17 @@
                         </ul>
                     </div>
                 </div>
-
                 <div class="col-md">
                     <div class="ftco-footer-widget mb-4 ml-md-5">
                         <h2 class="ftco-heading-2">Liên kết nhanh</h2>
                         <ul class="list-unstyled">
                             <li><a asp-controller="Shop" asp-action="Index" class="py-2 d-block">Cửa hàng</a></li>
                             <li><a asp-controller="Orders" asp-action="Index" class="py-2 d-block">Đơn hàng của tôi</a></li>
-                            
                             <li><a asp-controller="Home" asp-action="Index" class="py-2 d-block">Về chúng tôi</a></li>
                             <li><a asp-controller="Home" asp-action="Index" class="py-2 d-block">Liên hệ</a></li>
                         </ul>
                     </div>
                 </div>
-
                 <div class="col-md">
                     <div class="ftco-footer-widget mb-4">
                         <h2 class="ftco-heading-2">Trợ giúp</h2>
@@ -112,7 +239,6 @@
                         </ul>
                     </div>
                 </div>
-
                 <div class="col-md">
                     <div class="ftco-footer-widget mb-4">
                         <h2 class="ftco-heading-2">Liên hệ</h2>
@@ -132,11 +258,45 @@
         </div>
     </footer>
 
+    <!-- BOTTOM NAV – chỉ hiện trên mobile -->
+    <nav class="mobile-bottom-nav" aria-label="Điều hướng di động">
+        <a asp-controller="Home" asp-action="Index">
+            <span class="bi oi oi-home"></span>
+            <span>Trang chủ</span>
+        </a>
+        <a asp-controller="Shop" asp-action="Index">
+            <span class="bi oi oi-tags"></span>
+            <span>Sản phẩm</span>
+        </a>
+        <a asp-controller="Cart" asp-action="Index">
+            <span class="bi icon-shopping_cart"></span>
+            <span>Giỏ hàng</span>
+        </a>
+        <a asp-controller="Orders" asp-action="Index">
+            <span class="bi oi oi-list"></span>
+            <span>Đơn hàng</span>
+        </a>
+    </nav>
+
     <script src="~/js/jquery.min.js"></script>
     <script src="~/js/bootstrap.min.js"></script>
     <script src="~/js/owl.carousel.min.js"></script>
     <script src="~/js/aos.js"></script>
     <script src="~/js/main.js"></script>
+
+    <script>
+        // Highlight bottom nav theo URL hiện tại
+        (function () {
+            var path = window.location.pathname.toLowerCase();
+            document.querySelectorAll('.mobile-bottom-nav a').forEach(function (a) {
+                var href = (a.getAttribute('href') || '').toLowerCase();
+                if (href && (path === href || (href !== '/' && path.startsWith(href)))) {
+                    a.classList.add('active');
+                }
+            });
+        })();
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
