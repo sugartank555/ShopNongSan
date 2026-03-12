@@ -1,3 +1,4 @@
+using CloudinaryDotNet;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ShopNongSan.Data;
@@ -38,7 +39,13 @@ builder.Services.Configure<PayOSSettings>(
 builder.Services.AddControllersWithViews();
 builder.Services.AddSession();
 
-
+// Thêm vào trước builder.Build()
+var account = new Account(
+    builder.Configuration["Cloudinary:CloudName"],
+    builder.Configuration["Cloudinary:ApiKey"],
+    builder.Configuration["Cloudinary:ApiSecret"]
+);
+builder.Services.AddSingleton(new Cloudinary(account));
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

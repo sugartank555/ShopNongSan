@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShopNongSan.Data;
@@ -11,12 +13,12 @@ namespace ShopNongSan.Areas.Dashboard.Controllers
     public class CategoriesController : Controller
     {
         private readonly ApplicationDbContext _db;
-        private readonly IWebHostEnvironment _env;
+        private readonly Cloudinary _cloudinary;
 
-        public CategoriesController(ApplicationDbContext db, IWebHostEnvironment env)
+        public CategoriesController(ApplicationDbContext db, Cloudinary cloudinary)
         {
             _db = db;
-            _env = env;
+            _cloudinary = cloudinary;
         }
 
         public async Task<IActionResult> Index()
@@ -35,19 +37,7 @@ namespace ShopNongSan.Areas.Dashboard.Controllers
 
             if (imageFile != null && imageFile.Length > 0)
             {
-                string uploadDir = Path.Combine(_env.WebRootPath, "uploads/categories");
-                if (!Directory.Exists(uploadDir))
-                    Directory.CreateDirectory(uploadDir);
-
-                string fileName = Guid.NewGuid() + Path.GetExtension(imageFile.FileName);
-                string path = Path.Combine(uploadDir, fileName);
-
-                using (var stream = new FileStream(path, FileMode.Create))
-                {
-                    await imageFile.CopyToAsync(stream);
-                }
-
-                m.ImageUrl = "/uploads/categories/" + fileName;
+                m.ImageUrl = await UploadToCloudinaryAsync(imageFile);
             }
 
             _db.Add(m);
@@ -78,19 +68,7 @@ namespace ShopNongSan.Areas.Dashboard.Controllers
 
             if (imageFile != null && imageFile.Length > 0)
             {
-                string uploadDir = Path.Combine(_env.WebRootPath, "uploads/categories");
-                if (!Directory.Exists(uploadDir))
-                    Directory.CreateDirectory(uploadDir);
-
-                string fileName = Guid.NewGuid() + Path.GetExtension(imageFile.FileName);
-                string path = Path.Combine(uploadDir, fileName);
-
-                using (var stream = new FileStream(path, FileMode.Create))
-                {
-                    await imageFile.CopyToAsync(stream);
-                }
-
-                dbItem.ImageUrl = "/uploads/categories/" + fileName;
+                dbItem.ImageUrl = await UploadToCloudinaryAsync(imageFile);
             }
 
             await _db.SaveChangesAsync();
@@ -109,6 +87,20 @@ namespace ShopNongSan.Areas.Dashboard.Controllers
                 TempData["Success"] = "Đã xóa danh mục.";
             }
             return RedirectToAction(nameof(Index));
+        }
+
+        // ── Helper ──────────────────────────────────────────────────────────
+        private async Task<string> UploadToCloudinaryAsync(IFormFile file)
+        {
+            await using var stream = file.OpenReadStream();
+            var uploadParams = new ImageUploadParams
+            {
+                File = new FileDescription(file.FileName, stream),
+                Folder = "shopnongsan/categories",
+                Transformation = new Transformation().Quality("auto").FetchFormat("auto")
+            };
+            var result = await _cloudinary.UploadAsync(uploadParams);
+            return result.SecureUrl.ToString();
         }
     }
 }
