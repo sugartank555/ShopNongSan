@@ -1,10 +1,68 @@
 ﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
-    <title>@ViewData["Title"] - Nông sản sạch</title>
+    <!-- ✅ SEO: Charset & Viewport -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
+    <!-- ✅ SEO: Title động theo từng trang -->
+    <title>@(ViewData["Title"] != null ? ViewData["Title"] + " | Nông Sản Sạch - Rau Củ Quả Tươi Ngon" : "Nông Sản Sạch - Rau Củ Quả Tươi Ngon Hà Tĩnh")</title>
+
+    <!-- ✅ SEO: Meta Description -->
+    <meta name="description" content="@(ViewData["Description"] ?? "Nông Sản Sạch chuyên cung cấp rau, củ, quả sạch và đặc sản Việt – minh bạch nguồn gốc, đảm bảo an toàn thực phẩm. Miễn phí vận chuyển đơn trên 500.000đ.")" />
+
+    <!-- ✅ SEO: Keywords -->
+    <meta name="keywords" content="@(ViewData["Keywords"] ?? "nông sản sạch, rau củ quả tươi, thực phẩm sạch Hà Tĩnh, rau hữu cơ, mua rau online, đặc sản Việt")" />
+
+    <!-- ✅ SEO: Author & Robots -->
+    <meta name="author" content="Bùi Hải Đường" />
+    <meta name="robots" content="@(ViewData["Robots"] ?? "index, follow")" />
+
+    <!-- ✅ SEO: Canonical URL - tránh duplicate content -->
+    <link rel="canonical" href="https://shopnongsan.id.vn@Context.Request.Path" />
+
+    <!-- ✅ Open Graph: Facebook, Zalo chia sẻ đẹp -->
+    <meta property="og:type" content="@(ViewData["OgType"] ?? "website")" />
+    <meta property="og:site_name" content="Nông Sản Sạch" />
+    <meta property="og:title" content="@(ViewData["Title"] ?? "Nông Sản Sạch - Rau Củ Quả Tươi Ngon")" />
+    <meta property="og:description" content="@(ViewData["Description"] ?? "Chuyên cung cấp rau, củ, quả sạch và đặc sản Việt – minh bạch nguồn gốc, đảm bảo an toàn thực phẩm.")" />
+    <meta property="og:image" content="@(ViewData["OgImage"] ?? "https://shopnongsan.id.vn/images/og-default.jpg")" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:url" content="https://shopnongsan.id.vn@Context.Request.Path" />
+    <meta property="og:locale" content="vi_VN" />
+
+    <!-- ✅ Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="@(ViewData["Title"] ?? "Nông Sản Sạch")" />
+    <meta name="twitter:description" content="@(ViewData["Description"] ?? "Chuyên cung cấp rau, củ, quả sạch và đặc sản Việt.")" />
+    <meta name="twitter:image" content="@(ViewData["OgImage"] ?? "https://shopnongsan.id.vn/images/og-default.jpg")" />
+
+    <!-- ✅ Schema.org: LocalBusiness (hiện trên Google Maps, tìm kiếm địa phương) -->
+    <script type="application/ld+json">
+        {
+            "@@context": "https://schema.org",
+            "@@type": "LocalBusiness",
+            "name": "Nông Sản Sạch",
+            "description": "Chuyên cung cấp rau, củ, quả sạch và đặc sản Việt – minh bạch nguồn gốc, đảm bảo an toàn thực phẩm.",
+            "url": "https://shopnongsan.id.vn",
+            "telephone": "+84395604676",
+            "email": "Duongdz17624@gmail.com",
+            "image": "https://shopnongsan.id.vn/images/og-default.jpg",
+            "priceRange": "₫₫",
+            "address": {
+                "@@type": "PostalAddress",
+                "addressLocality": "Hà Tĩnh",
+                "addressCountry": "VN"
+            },
+            "sameAs": [
+                "https://www.facebook.com/share/18MR6p4dF2/?mibextid=wwXIfr",
+                "https://www.instagram.com/sugardzvl"
+            ]
+        }
+    </script>
+
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css?family=Poppins:200,300,400,500,600,700,800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Lora:400,400i,700,700i&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Amatic+SC:400,700&display=swap" rel="stylesheet">
@@ -213,8 +271,8 @@
                         <h2 class="ftco-heading-2">Nông sản sạch</h2>
                         <p>Cung cấp rau, củ, quả sạch và đặc sản Việt – minh bạch nguồn gốc, đảm bảo an toàn thực phẩm.</p>
                         <ul class="ftco-footer-social list-unstyled mt-3">
-                            <li><a href="https://www.facebook.com/share/18MR6p4dF2/?mibextid=wwXIfr"><span class="icon-facebook"></span></a></li>
-                            <li><a href="https://www.instagram.com/sugardzvl?igsh=Zmd1NnE1a3YydWJ3&utm_source=qr"><span class="icon-instagram"></span></a></li>
+                            <li><a href="https://www.facebook.com/share/18MR6p4dF2/?mibextid=wwXIfr" aria-label="Facebook Nông Sản Sạch" rel="noopener"><span class="icon-facebook"></span></a></li>
+                            <li><a href="https://www.instagram.com/sugardzvl?igsh=Zmd1NnE1a3YydWJ3&utm_source=qr" aria-label="Instagram Nông Sản Sạch" rel="noopener"><span class="icon-instagram"></span></a></li>
                         </ul>
                     </div>
                 </div>
@@ -244,15 +302,15 @@
                         <h2 class="ftco-heading-2">Liên hệ</h2>
                         <ul class="list-unstyled">
                             <li><span class="icon icon-map-marker"></span> Hà Tĩnh</li>
-                            <li><span class="icon icon-phone"></span> +84 395 604 676</li>
-                            <li><span class="icon icon-envelope"></span> Duongdz17624@gmail.com</li>
+                            <li><span class="icon icon-phone"></span> <a href="tel:+84395604676">+84 395 604 676</a></li>
+                            <li><span class="icon icon-envelope"></span> <a href="mailto:Duongdz17624@gmail.com">Duongdz17624@gmail.com</a></li>
                         </ul>
                     </div>
                 </div>
             </div>
             <div class="row text-center">
                 <div class="col-md-12">
-                    <p>© @DateTime.Now.Year - Nông sản sạch | Thiết kế bởi <a href="https://www.facebook.com/share/18MR6p4dF2/?mibextid=wwXIfr" target="_blank">Bùi Hải Đường</a></p>
+                    <p>© @DateTime.Now.Year - Nông sản sạch | Thiết kế bởi <a href="https://www.facebook.com/share/18MR6p4dF2/?mibextid=wwXIfr" target="_blank" rel="noopener">Bùi Hải Đường</a></p>
                 </div>
             </div>
         </div>

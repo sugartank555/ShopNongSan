@@ -1,9 +1,53 @@
 ﻿@model IEnumerable<ShopNongSan.Models.Product>
 @{
-    ViewData["Title"] = "Cửa hàng";
+    // ✅ SEO: Title & Description động theo filter đang chọn
+    var currentCategory = (ViewBag.Categories as IEnumerable<ShopNongSan.Models.Category>)
+        ?.FirstOrDefault(c => c.Id == ViewBag.CategoryId);
+    var searchQuery = ViewBag.Query as string;
+
+    if (currentCategory != null)
+    {
+        ViewData["Title"] = currentCategory.Name + " - Nông Sản Sạch";
+        ViewData["Description"] = $"Mua {currentCategory.Name} tươi ngon, sạch, an toàn tại Nông Sản Sạch Hà Tĩnh. Đảm bảo VietGAP, giao hàng tận nơi, miễn phí đơn trên 500.000đ.";
+        ViewData["Keywords"] = $"{currentCategory.Name}, mua {currentCategory.Name}, {currentCategory.Name} sạch VietGAP, {currentCategory.Name} Hà Tĩnh";
+    }
+    else if (!string.IsNullOrEmpty(searchQuery))
+    {
+        ViewData["Title"] = "Tìm kiếm: " + searchQuery;
+        ViewData["Description"] = $"Kết quả tìm kiếm '{searchQuery}' tại Nông Sản Sạch – rau củ quả tươi ngon, sạch, an toàn, giao hàng tận nơi Hà Tĩnh.";
+        ViewData["Robots"] = "noindex, follow"; // trang tìm kiếm không cần index
+    }
+    else
+    {
+        ViewData["Title"] = "Tất Cả Sản Phẩm";
+        ViewData["Description"] = "Xem toàn bộ sản phẩm nông sản sạch: rau xanh, củ quả, trái cây tươi VietGAP. Đảm bảo an toàn thực phẩm, giao hàng tận nơi tại Hà Tĩnh.";
+        ViewData["Keywords"] = "tất cả nông sản sạch, rau củ quả tươi, thực phẩm VietGAP Hà Tĩnh, mua rau online";
+    }
+
     var categories = ViewBag.Categories as IEnumerable<ShopNongSan.Models.Category>;
 }
 
+<!-- ✅ Schema.org: BreadcrumbList -->
+<script type="application/ld+json">
+{
+    "@@context": "https://schema.org",
+    "@@type": "BreadcrumbList",
+    "itemListElement": [
+        {
+            "@@type": "ListItem",
+            "position": 1,
+            "name": "Trang chủ",
+            "item": "https://shopnongsan.id.vn"
+        },
+        {
+            "@@type": "ListItem",
+            "position": 2,
+            "name": "@(currentCategory?.Name ?? "Tất cả sản phẩm")",
+            "item": "https://shopnongsan.id.vn/Shop"
+        }
+    ]
+}
+</script>
 
 <style>
     .product-card:hover {
@@ -42,37 +86,75 @@
 
 <div class="container py-4">
 
-    <!-- 🔎 TÌM KIẾM -->
-    <form method="get" class="input-group mb-4 shadow-sm">
-        <input type="text" name="q" value="@ViewBag.Query" class="form-control" placeholder="Tìm kiếm sản phẩm...">
-        <button class="btn btn-success"><i class="fa fa-search"></i></button>
+    <!-- ✅ SEO: Breadcrumb hiển thị -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+            @if (currentCategory != null)
+            {
+                <li class="breadcrumb-item"><a asp-controller="Shop" asp-action="Index">Sản phẩm</a></li>
+                <li class="breadcrumb-item active" aria-current="page">@currentCategory.Name</li>
+            }
+            else
+            {
+                <li class="breadcrumb-item active" aria-current="page">Tất cả sản phẩm</li>
+            }
+        </ol>
+    </nav>
+
+    <!-- TÌM KIẾM -->
+    <form method="get" class="input-group mb-4 shadow-sm" role="search">
+        <label class="visually-hidden" for="searchInput">Tìm kiếm sản phẩm</label>
+        <input type="text" id="searchInput" name="q" value="@ViewBag.Query"
+               class="form-control" placeholder="Tìm kiếm sản phẩm...">
+        <button class="btn btn-success" type="submit" aria-label="Tìm kiếm">
+            <i class="fa fa-search"></i>
+        </button>
     </form>
 
-    <!-- 🏷 LỌC DANH MỤC -->
-    <div class="mb-4 d-flex flex-wrap gap-2">
-        <a asp-controller="Shop" asp-action="Index"
-           class="category-pill @(ViewBag.CategoryId == null ? "active" : "")">
-            Tất cả
-        </a>
-
-        @foreach (var c in categories)
-        {
-            <a asp-controller="Shop" asp-action="Index" asp-route-categoryId="@c.Id"
-               class="category-pill @(ViewBag.CategoryId == c.Id ? "active" : "")">
-                @c.Name
+    <!-- LỌC DANH MỤC -->
+    <nav aria-label="Lọc danh mục" class="mb-4">
+        <div class="d-flex flex-wrap gap-2">
+            <a asp-controller="Shop" asp-action="Index"
+               class="category-pill @(ViewBag.CategoryId == null ? "active" : "")"
+               aria-current="@(ViewBag.CategoryId == null ? "page" : "false")">
+                Tất cả
             </a>
-        }
-    </div>
 
-    <!-- 🔽 SẮP XẾP -->
+            @foreach (var c in categories)
+            {
+                <a asp-controller="Shop" asp-action="Index" asp-route-categoryId="@c.Id"
+                   class="category-pill @(ViewBag.CategoryId == c.Id ? "active" : "")"
+                   aria-current="@(ViewBag.CategoryId == c.Id ? "page" : "false")">
+                    @c.Name
+                </a>
+            }
+        </div>
+    </nav>
+
+    <!-- SẮP XẾP -->
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-bold">Tất cả sản phẩm</h5>
+        <!-- ✅ SEO: h1 chuẩn cho trang -->
+        <h1 class="fw-bold" style="font-size:1.25rem;">
+            @if (currentCategory != null)
+            {
+                @currentCategory.Name
+            }
+            else if (!string.IsNullOrEmpty(searchQuery))
+            {
+                <span>Kết quả: "@searchQuery"</span>
+            }
+            else
+            {
+                <span>Tất cả sản phẩm</span>
+            }
+        </h1>
 
         <form method="get" class="d-flex align-items-center">
             <input type="hidden" name="q" value="@ViewBag.Query" />
             <input type="hidden" name="categoryId" value="@ViewBag.CategoryId" />
-
-            <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
+            <label class="visually-hidden" for="sortSelect">Sắp xếp</label>
+            <select id="sortSelect" name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
                 <option value="">Sắp xếp</option>
                 <option value="newest" selected="@("newest" == ViewBag.Sort)">Mới nhất</option>
                 <option value="priceAsc" selected="@("priceAsc" == ViewBag.Sort)">Giá tăng dần</option>
@@ -81,29 +163,33 @@
         </form>
     </div>
 
-    <!-- 🛒 GRID SẢN PHẨM -->
+    <!-- GRID SẢN PHẨM -->
     <div class="row g-4">
-
         @foreach (var p in Model)
         {
             <div class="col-6 col-md-3">
                 <div class="card product-card h-100 border-0 shadow-sm rounded-3">
 
-                    <a asp-controller="Shop" asp-action="Details" asp-route-id="@p.Id">
+                    <a asp-controller="Shop" asp-action="Details" asp-route-id="@p.Id"
+                       title="Xem chi tiết @p.Name">
                         <img src="@(!string.IsNullOrEmpty(p.ImageUrl) ? p.ImageUrl : "/images/noimg.png")"
+                             alt="@p.Name - @(p.Category?.Name ?? "Nông Sản Sạch") Hà Tĩnh"
+                             title="@p.Name"
                              class="card-img-top rounded-top"
-                             style="height:220px; object-fit:cover">
+                             style="height:220px; object-fit:cover"
+                             loading="lazy" />
                     </a>
 
                     <div class="card-body">
-                        <h6 class="fw-semibold text-dark">@p.Name</h6>
+                        <!-- ✅ SEO: h2 cho tên sản phẩm trong danh sách -->
+                        <h2 class="fw-semibold text-dark" style="font-size:0.95rem;">@p.Name</h2>
 
                         <div class="product-price mb-2">
                             @String.Format("{0:N0} đ", p.Price)
                         </div>
 
                         <div class="d-flex justify-content-between">
-                            <a asp-action="Details" asp-route-id="@p.Id"
+                            <a asp-controller="Shop" asp-action="Details" asp-route-id="@p.Id"
                                class="btn btn-outline-success btn-sm">
                                 Xem chi tiết
                             </a>
@@ -111,13 +197,15 @@
                             <form asp-controller="Cart" asp-action="Add" method="post">
                                 <input type="hidden" name="id" value="@p.Id" />
                                 <input type="hidden" name="qty" value="1" />
-                                <button class="btn btn-success btn-sm"><i class="fa fa-cart-plus">Thêm giỏ hàng</i></button>
+                                <button class="btn btn-success btn-sm" aria-label="Thêm @p.Name vào giỏ hàng">
+                                    <i class="fa fa-cart-plus"></i> Thêm giỏ hàng
+                                </button>
                             </form>
                         </div>
                     </div>
                 </div>
             </div>
         }
-
     </div>
+
 </div>

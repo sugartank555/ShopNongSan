@@ -1,0 +1,10 @@
+﻿User-agent: *
+Allow: /
+Disallow: /Admin/
+Disallow: /Identity/Account/Manage
+Disallow: /Identity/Account/Register
+Disallow: /Cart/
+Disallow: /Payment/
+Disallow: /Order/
+
+Sitemap: https://shopnongsan.onrender.com/sitemap.xml

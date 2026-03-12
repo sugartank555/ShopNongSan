@@ -2,31 +2,94 @@
 
 @{
     var lots = ViewBag.Lots as List<ShopNongSan.Models.BatchLot>;
+
+    // ✅ SEO: Title, Description, Keywords động theo từng sản phẩm
+    ViewData["Title"] = Model.Name;
+    ViewData["Description"] = !string.IsNullOrEmpty(Model.Description)
+        ? (Model.Description.Length > 155 ? Model.Description.Substring(0, 155) + "..." : Model.Description)
+        : $"Mua {Model.Name} tươi ngon, sạch, an toàn tại Nông Sản Sạch Hà Tĩnh. Đảm bảo VietGAP, giao hàng tận nơi, miễn phí đơn trên 500.000đ.";
+    ViewData["Keywords"] = $"{Model.Name}, mua {Model.Name}, {Model.Name} sạch, {Model.Name} VietGAP, {Model.Category?.Name} tươi ngon Hà Tĩnh";
+    ViewData["OgImage"] = !string.IsNullOrEmpty(Model.ImageUrl) ? Model.ImageUrl : "https://shopnongsan.id.vn/images/og-default.jpg";
+    ViewData["OgType"] = "product";
 }
 
+<!-- ✅ Schema.org Product — hiện giá, đánh giá ngay trên Google Search -->
+<script type="application/ld+json">
+    {
+        "@@context": "https://schema.org",
+        "@@type": "Product",
+        "name": "@Html.Raw(Model.Name?.Replace("\"", "\\\""))",
+        "description": "@Html.Raw(Model.Description?.Replace("\"", "\\\"").Replace("\n", " "))",
+        "image": "@(!string.IsNullOrEmpty(Model.ImageUrl) ? Model.ImageUrl : "https://shopnongsan.id.vn/images/og-default.jpg")",
+        "url": "https://shopnongsan.id.vn/Shop/Details/@Model.Id",
+        "brand": {
+            "@@type": "Brand",
+            "name": "Nông Sản Sạch"
+        },
+        "category": "@Model.Category?.Name",
+        "offers": {
+            "@@type": "Offer",
+            "priceCurrency": "VND",
+            "price": "@Model.Price",
+            "availability": "https://schema.org/InStock",
+            "url": "https://shopnongsan.id.vn/Shop/Details/@Model.Id",
+            "seller": {
+                "@@type": "Organization",
+                "name": "Nông Sản Sạch"
+            }
+        }
+    }
+</script>
 
 <div class="container py-5">
+
+    <!-- ✅ SEO: Breadcrumb giúp Google hiểu cấu trúc trang -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Shop" asp-action="Index">Sản phẩm</a></li>
+            @if (Model.Category != null)
+            {
+                <li class="breadcrumb-item">
+                    <a asp-controller="Shop" asp-action="Index" asp-route-categoryId="@Model.Category.Id">
+                        @Model.Category.Name
+                    </a>
+                </li>
+            }
+            <li class="breadcrumb-item active" aria-current="page">@Model.Name</li>
+        </ol>
+    </nav>
 
     <div class="row">
         <!-- Ảnh sản phẩm -->
         <div class="col-md-5">
             <div class="border rounded p-3 bg-white shadow-sm">
-                <img src="@Model.ImageUrl" class="img-fluid rounded" style="max-height:420px; object-fit:cover" />
+                <img src="@Model.ImageUrl"
+                     alt="@Model.Name - Nông Sản Sạch Hà Tĩnh"
+                     title="@Model.Name tươi ngon, sạch, an toàn"
+                     class="img-fluid rounded"
+                     style="max-height:420px; object-fit:cover"
+                     loading="eager" />
+                <!-- eager vì đây là ảnh chính, cần load ngay -->
             </div>
         </div>
 
         <!-- Thông tin chi tiết -->
         <div class="col-md-7">
-            <h2 class="fw-bold mb-2">@Model.Name</h2>
+            <!-- ✅ SEO: dùng h1 cho tên sản phẩm -->
+            <h1 class="fw-bold mb-2" style="font-size:1.6rem;">@Model.Name</h1>
 
             <p class="text-muted mb-1">
                 Danh mục:
-                <span class="badge bg-success">@Model.Category?.Name</span>
+                <a asp-controller="Shop" asp-action="Index" asp-route-categoryId="@Model.Category?.Id"
+                   class="badge bg-success text-decoration-none">
+                    @Model.Category?.Name
+                </a>
             </p>
 
-            <h3 class="text-danger fw-bold mb-3">
+            <h2 class="text-danger fw-bold mb-3" style="font-size:1.5rem;">
                 @String.Format("{0:N0} đ", Model.Price)
-            </h3>
+            </h2>
 
             @if (!string.IsNullOrEmpty(Model.Description))
             {
@@ -54,28 +117,34 @@
                     Mua ngay
                 </a>
             </form>
-
-            <script>
-                document.getElementById("qty").addEventListener("change", function () {
-                    document.getElementById("qtyInput").value = this.value;
-                });
-            </script>
-
         </div>
     </div>
 
     <!-- Thông tin lô sản xuất -->
     <div class="mt-5">
-        <h4 class="fw-bold mb-3">Thông tin lô sản xuất</h4>
+        <h2 class="fw-bold mb-3" style="font-size:1.2rem;">Thông tin lô sản xuất</h2>
 
         @if (lots != null && lots.Any())
         {
+            <!-- ✅ Schema.org: FoodEstablishment cho lô sản xuất -->
+            <script type="application/ld+json">
+                {
+                    "@@context": "https://schema.org",
+                    "@@type": "FoodEvent",
+                    "name": "Lô sản xuất @Html.Raw(Model.Name?.Replace("\"", "\\\""))",
+                    "location": {
+                        "@@type": "Place",
+                        "name": "@lots.First().FarmName"
+                    }
+                }
+            </script>
+
             <table class="table table-bordered table-striped">
                 <thead class="table-success">
                     <tr>
                         <th>Mã lô</th>
                         <th>Nông trại</th>
-                        <th>Ngày thu hoạch/ sản xuất</th>
+                        <th>Ngày thu hoạch / sản xuất</th>
                         <th>Ngày hết hạn</th>
                         <th>Chứng nhận</th>
                     </tr>
@@ -104,7 +173,7 @@
 
 <!-- Các sản phẩm liên quan -->
 <div class="container py-4">
-    <h4 class="fw-bold mb-3">Sản phẩm liên quan</h4>
+    <h2 class="fw-bold mb-3" style="font-size:1.2rem;">Sản phẩm liên quan</h2>
 
     <div class="row">
         @foreach (var item in ViewBag.Related as List<ShopNongSan.Models.Product> ?? new())
@@ -112,10 +181,14 @@
             <div class="col-6 col-md-3 mb-3">
                 <a asp-controller="Shop" asp-action="Details" asp-route-id="@item.Id"
                    class="card shadow-sm border-0 h-100 text-dark text-decoration-none">
-
-                    <img src="@item.ImageUrl" class="card-img-top" style="height:180px; object-fit:cover" />
+                    <img src="@item.ImageUrl"
+                         alt="@item.Name - Nông Sản Sạch"
+                         title="@item.Name"
+                         class="card-img-top"
+                         style="height:180px; object-fit:cover"
+                         loading="lazy" />
                     <div class="card-body">
-                        <h6 class="fw-semibold">@item.Name</h6>
+                        <h3 class="fw-semibold" style="font-size:0.95rem;">@item.Name</h3>
                         <p class="text-danger fw-bold mb-0">@String.Format("{0:N0} đ", item.Price)</p>
                     </div>
                 </a>
@@ -123,3 +196,11 @@
         }
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.getElementById("qty").addEventListener("change", function () {
+            document.getElementById("qtyInput").value = this.value;
+        });
+    </script>
+}
