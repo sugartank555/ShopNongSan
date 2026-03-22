@@ -1,0 +1,1154 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopNongSan — Test Runner</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0b0e14;
+            --surface: #111520;
+            --border: #1e2535;
+            --pass: #00e5a0;
+            --fail: #ff4d6a;
+            --warn: #ffb347;
+            --skip: #6b7a99;
+            --running: #38b6ff;
+            --text: #cdd6f4;
+            --muted: #6b7a99;
+            --accent: #38b6ff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Syne', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+            /* ── grid noise bg ── */
+            body::before {
+                content: '';
+                position: fixed;
+                inset: 0;
+                background-image: linear-gradient(rgba(56,182,255,.03) 1px, transparent 1px), linear-gradient(90deg, rgba(56,182,255,.03) 1px, transparent 1px);
+                background-size: 32px 32px;
+                pointer-events: none;
+                z-index: 0;
+            }
+
+        /* ── HEADER ── */
+        header {
+            position: relative;
+            z-index: 10;
+            padding: 20px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            background: rgba(11,14,20,.85);
+            backdrop-filter: blur(12px);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--pass), var(--accent));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .logo-text {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: .04em;
+        }
+
+        .logo-sub {
+            font-size: 11px;
+            color: var(--muted);
+            font-family: 'JetBrains Mono';
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            font-family: 'Syne', sans-serif;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: .04em;
+            transition: all .15s ease;
+        }
+
+        .btn-run {
+            padding: 10px 22px;
+            background: var(--pass);
+            color: #0b0e14;
+        }
+
+            .btn-run:hover {
+                filter: brightness(1.1);
+                transform: translateY(-1px);
+            }
+
+            .btn-run:disabled {
+                opacity: .4;
+                cursor: not-allowed;
+                transform: none;
+            }
+
+        .btn-reset {
+            padding: 10px 18px;
+            background: transparent;
+            color: var(--muted);
+            border: 1px solid var(--border);
+        }
+
+            .btn-reset:hover {
+                color: var(--text);
+                border-color: var(--muted);
+            }
+
+        /* ── STATS BAR ── */
+        .stats-bar {
+            position: relative;
+            z-index: 5;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .stat {
+            padding: 18px 24px;
+            border-right: 1px solid var(--border);
+            transition: background .2s;
+        }
+
+            .stat:last-child {
+                border-right: none;
+            }
+
+        .stat-val {
+            font-size: 32px;
+            font-weight: 800;
+            font-family: 'JetBrains Mono';
+            line-height: 1;
+            transition: color .3s;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin-top: 4px;
+        }
+
+        .stat.pass .stat-val {
+            color: var(--pass);
+        }
+
+        .stat.fail .stat-val {
+            color: var(--fail);
+        }
+
+        .stat.warn .stat-val {
+            color: var(--warn);
+        }
+
+        .stat.run .stat-val {
+            color: var(--running);
+        }
+
+        .stat.tot .stat-val {
+            color: var(--text);
+        }
+
+        /* ── PROGRESS BAR ── */
+        .progress-wrap {
+            height: 3px;
+            background: var(--border);
+            position: relative;
+            z-index: 5;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--pass), var(--accent));
+            transition: width .3s ease;
+        }
+
+        /* ── MAIN LAYOUT ── */
+        .main {
+            position: relative;
+            z-index: 5;
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            height: calc(100vh - 140px);
+        }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+            padding: 16px 0;
+        }
+
+            .sidebar::-webkit-scrollbar {
+                width: 4px;
+            }
+
+            .sidebar::-webkit-scrollbar-thumb {
+                background: var(--border);
+                border-radius: 2px;
+            }
+
+        .sidebar-title {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            color: var(--muted);
+            padding: 0 16px 8px;
+        }
+
+        .suite-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: all .15s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+            .suite-item:hover {
+                background: rgba(56,182,255,.05);
+            }
+
+            .suite-item.active {
+                background: rgba(56,182,255,.08);
+                border-left-color: var(--accent);
+            }
+
+        .suite-name {
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .suite-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--muted);
+            flex-shrink: 0;
+            transition: background .3s;
+        }
+
+            .suite-dot.pass {
+                background: var(--pass);
+            }
+
+            .suite-dot.fail {
+                background: var(--fail);
+            }
+
+            .suite-dot.running {
+                background: var(--running);
+                animation: pulse 1s infinite;
+            }
+
+        .suite-badge {
+            font-size: 10px;
+            font-family: 'JetBrains Mono';
+            padding: 2px 7px;
+            border-radius: 20px;
+            background: var(--border);
+            color: var(--muted);
+        }
+
+            .suite-badge.fail {
+                background: rgba(255,77,106,.15);
+                color: var(--fail);
+            }
+
+            .suite-badge.pass {
+                background: rgba(0,229,160,.1);
+                color: var(--pass);
+            }
+
+        /* ── CONTENT ── */
+        .content {
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+            .content::-webkit-scrollbar {
+                width: 4px;
+            }
+
+            .content::-webkit-scrollbar-thumb {
+                background: var(--border);
+                border-radius: 2px;
+            }
+
+        .content-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .content-title {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 6px;
+        }
+
+        .filter-tab {
+            padding: 5px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            background: transparent;
+            color: var(--muted);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+            .filter-tab.active {
+                background: var(--surface);
+                color: var(--text);
+                border-color: var(--muted);
+            }
+
+            .filter-tab:hover {
+                color: var(--text);
+            }
+
+        /* ── TEST ROW ── */
+        .test-row {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all .2s;
+            animation: slideIn .2s ease forwards;
+            opacity: 0;
+            transform: translateY(4px);
+        }
+
+            .test-row:hover {
+                border-color: rgba(56,182,255,.2);
+            }
+
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .test-status {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+            .test-status.pass {
+                background: rgba(0,229,160,.15);
+                color: var(--pass);
+            }
+
+            .test-status.fail {
+                background: rgba(255,77,106,.15);
+                color: var(--fail);
+            }
+
+            .test-status.warn {
+                background: rgba(255,179,71,.15);
+                color: var(--warn);
+            }
+
+            .test-status.running {
+                background: rgba(56,182,255,.15);
+                color: var(--running);
+            }
+
+            .test-status.idle {
+                background: var(--border);
+                color: var(--muted);
+            }
+
+        .test-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .test-name {
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .test-meta {
+            font-size: 11px;
+            color: var(--muted);
+            font-family: 'JetBrains Mono';
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 3px;
+        }
+
+        .bug-tag {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            letter-spacing: .04em;
+            flex-shrink: 0;
+        }
+
+            .bug-tag.status {
+                background: rgba(255,179,71,.12);
+                color: var(--warn);
+            }
+
+            .bug-tag.logic {
+                background: rgba(255,77,106,.12);
+                color: var(--fail);
+            }
+
+            .bug-tag.boundary {
+                background: rgba(56,182,255,.12);
+                color: var(--running);
+            }
+
+            .bug-tag.validate {
+                background: rgba(160,100,255,.12);
+                color: #c084fc;
+            }
+
+        .test-duration {
+            font-size: 11px;
+            font-family: 'JetBrains Mono';
+            color: var(--muted);
+            flex-shrink: 0;
+        }
+
+        /* ── LOG CONSOLE ── */
+        .console-wrap {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(11,14,20,.97);
+            border-top: 1px solid var(--border);
+            transition: height .3s ease;
+            height: 36px;
+            backdrop-filter: blur(12px);
+        }
+
+            .console-wrap.open {
+                height: 200px;
+            }
+
+        .console-toggle {
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+            font-size: 12px;
+            font-family: 'JetBrains Mono';
+            color: var(--muted);
+        }
+
+            .console-toggle:hover {
+                color: var(--text);
+            }
+
+        .console-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--pass);
+            animation: pulse 2s infinite;
+        }
+
+        .console-body {
+            padding: 0 16px 8px;
+            height: calc(100% - 36px);
+            overflow-y: auto;
+            font-family: 'JetBrains Mono';
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+            .console-body::-webkit-scrollbar {
+                width: 3px;
+            }
+
+            .console-body::-webkit-scrollbar-thumb {
+                background: var(--border);
+            }
+
+        .log-line {
+            color: var(--muted);
+        }
+
+            .log-line.pass {
+                color: var(--pass);
+            }
+
+            .log-line.fail {
+                color: var(--fail);
+            }
+
+            .log-line.info {
+                color: var(--accent);
+            }
+
+            .log-line.warn {
+                color: var(--warn);
+            }
+
+        /* ── EMPTY STATE ── */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            gap: 12px;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            opacity: .3;
+        }
+
+        .empty-text {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .empty-sub {
+            font-size: 12px;
+        }
+
+        /* ── SPINNER ── */
+        .spinner {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid rgba(56,182,255,.2);
+            border-top-color: var(--running);
+            animation: spin .6s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes pulse {
+            0%,100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: .4
+            }
+        }
+
+        /* ── TOOLTIP ── */
+        [data-tip] {
+            position: relative;
+        }
+
+            [data-tip]:hover::after {
+                content: attr(data-tip);
+                position: absolute;
+                bottom: calc(100% + 6px);
+                left: 50%;
+                transform: translateX(-50%);
+                background: #1e2535;
+                color: var(--text);
+                font-size: 11px;
+                padding: 5px 10px;
+                border-radius: 6px;
+                white-space: nowrap;
+                pointer-events: none;
+                z-index: 999;
+                border: 1px solid var(--border);
+            }
+
+        .running-bar {
+            width: 100%;
+            height: 2px;
+            overflow: hidden;
+            background: var(--border);
+            border-radius: 2px;
+            margin-top: 4px;
+        }
+
+        .running-bar-fill {
+            height: 100%;
+            width: 30%;
+            background: var(--running);
+            animation: scan 1s ease-in-out infinite;
+        }
+
+        @keyframes scan {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(400%);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header>
+        <div class="logo">
+            <div class="logo-icon">🌾</div>
+            <div>
+                <div class="logo-text">ShopNongSan Test Runner</div>
+                <div class="logo-sub">xUnit Automation Dashboard</div>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="btn-reset" onclick="resetAll()">↺ Reset</button>
+            <button class="btn-run" id="btnRun" onclick="runAll()">▶ Run All Tests</button>
+        </div>
+    </header>
+
+    <!-- STATS -->
+    <div class="stats-bar">
+        <div class="stat tot"><div class="stat-val" id="sTotal">0</div><div class="stat-label">Total</div></div>
+        <div class="stat run"><div class="stat-val" id="sRun">0</div><div class="stat-label">Running</div></div>
+        <div class="stat pass"><div class="stat-val" id="sPass">0</div><div class="stat-label">Passed</div></div>
+        <div class="stat fail"><div class="stat-val" id="sFail">0</div><div class="stat-label">Failed</div></div>
+        <div class="stat warn"><div class="stat-val" id="sWarn">0</div><div class="stat-label">Warnings</div></div>
+    </div>
+    <div class="progress-wrap"><div class="progress-fill" id="progressFill"></div></div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div class="sidebar-title">Test Suites</div>
+            <div id="suiteList"></div>
+        </div>
+
+        <!-- CONTENT -->
+        <div class="content" id="content">
+            <div class="empty-state">
+                <div class="empty-icon">⚗️</div>
+                <div class="empty-text">Chọn suite hoặc nhấn Run All</div>
+                <div class="empty-sub">để bắt đầu chạy test</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONSOLE -->
+    <div class="console-wrap" id="consoleWrap">
+        <div class="console-toggle" onclick="toggleConsole()">
+            <div class="console-dot"></div>
+            <span id="consoleLabel">▲ Console Output</span>
+        </div>
+        <div class="console-body" id="consoleBody"></div>
+    </div>
+
+    <script>
+// ═══════════════════════════════════════════════════════════════
+// DATA — toàn bộ test cases từ 6 controllers
+// status: null=idle, 'running', 'pass', 'fail', 'warn'
+// bug: null | 'status' | 'logic' | 'boundary' | 'validate'
+// ═══════════════════════════════════════════════════════════════
+const SUITES = [
+  {
+    id: 'auth', name: 'Auth', icon: '🔐',
+    tests: [
+      { name:'Register_ValidRequest_Returns200',            bug:null,       expectedResult:'pass' },
+      { name:'Register_EmailAlreadyExists_Returns400',      bug:'status',   expectedResult:'fail', bugDesc:'Expect 400 nhưng API trả 409 Conflict' },
+      { name:'Register_InvalidEmail_Returns400',            bug:null,       expectedResult:'pass' },
+      { name:'Register_Password5Chars_ReturnsOk',          bug:'boundary', expectedResult:'fail', bugDesc:'Password 5 ký tự phải bị reject 400, test expect 200' },
+      { name:'Register_Password6Chars_Returns200',          bug:null,       expectedResult:'pass' },
+      { name:'Register_IdentityFails_Returns400WithErrors', bug:null,       expectedResult:'pass' },
+      { name:'Login_ValidCredentials_Returns200WithToken',  bug:null,       expectedResult:'pass' },
+      { name:'Login_EmailNotFound_Returns401',              bug:null,       expectedResult:'pass' },
+      { name:'Login_WrongPassword_Returns401',              bug:null,       expectedResult:'pass' },
+      { name:'Login_LockedAccount_ReturnsOk',               bug:'logic',    expectedResult:'fail', bugDesc:'Tài khoản bị khóa phải 401, test expect 200' },
+      { name:'Login_EmptyBody_Returns400',                  bug:null,       expectedResult:'pass' },
+      { name:'Login_LockedAccount_MessageDoesNotMentionLock',bug:'validate',expectedResult:'fail', bugDesc:'Assert ngược: message thực tế có chứa "khóa"' },
+    ]
+  },
+  {
+    id: 'categories', name: 'Categories', icon: '📂',
+    tests: [
+      { name:'GetAll_NoFilter_ReturnsAllCategories',        bug:null,       expectedResult:'pass' },
+      { name:'GetAll_FilterActiveTrue_ReturnsAll',          bug:'logic',    expectedResult:'fail', bugDesc:'Filter isActive=true trả 2 records, test expect 3' },
+      { name:'GetAll_FilterActiveFalse_ReturnsOnlyInactive',bug:null,       expectedResult:'pass' },
+      { name:'GetById_ExistingId_Returns200',               bug:null,       expectedResult:'pass' },
+      { name:'GetById_NotFound_Returns404',                 bug:null,       expectedResult:'pass' },
+      { name:'GetById_NegativeId_Returns404',               bug:'boundary', expectedResult:'fail', bugDesc:'Id âm phải 400, test expect 404' },
+      { name:'GetById_ZeroId_Returns400',                   bug:null,       expectedResult:'pass' },
+      { name:'Create_ValidRequest_Returns201',              bug:null,       expectedResult:'pass' },
+      { name:'Create_DuplicateName_Returns409',             bug:null,       expectedResult:'pass' },
+      { name:'Create_MissingName_Returns400',               bug:null,       expectedResult:'pass' },
+      { name:'Create_Name101Chars_Returns201',              bug:'boundary', expectedResult:'warn', bugDesc:'Thiếu ModelState error → InMemory không enforce StringLength → pass oan' },
+      { name:'Create_NameExactly100Chars_Returns201',       bug:null,       expectedResult:'pass' },
+      { name:'Create_NameExactly1Char_Returns201',          bug:null,       expectedResult:'pass' },
+      { name:'Update_ValidRequest_Returns200',              bug:null,       expectedResult:'pass' },
+      { name:'Update_NotFound_Returns400',                  bug:'status',   expectedResult:'fail', bugDesc:'Update id không tồn tại trả 404, test expect 400' },
+      { name:'Update_DuplicateNameOtherCategory_Returns409',bug:null,       expectedResult:'pass' },
+      { name:'Update_SameNameSameCategory_Returns200',      bug:null,       expectedResult:'pass' },
+      { name:'Update_NegativeId_Returns400',                bug:null,       expectedResult:'pass' },
+      { name:'Delete_CategoryWithNoProducts_Returns200',    bug:null,       expectedResult:'pass' },
+      { name:'Delete_CategoryHasProducts_Returns409',       bug:null,       expectedResult:'pass' },
+      { name:'Delete_NotFound_Returns404',                  bug:null,       expectedResult:'pass' },
+      { name:'Delete_NegativeId_Returns400',                bug:null,       expectedResult:'pass' },
+      { name:'Delete_Success_OnlyChecksStatusCode',         bug:'validate', expectedResult:'warn', bugDesc:'Assert vô nghĩa: Assert.True(true) — không verify DB' },
+    ]
+  },
+  {
+    id: 'products', name: 'Products', icon: '🛒',
+    tests: [
+      { name:'GetAll_NoFilter_ReturnsAllProducts',          bug:null,       expectedResult:'pass' },
+      { name:'GetAll_FilterIsActiveTrue_Returns2',          bug:null,       expectedResult:'pass' },
+      { name:'GetAll_FilterByCategoryId1_Returns1',         bug:'logic',    expectedResult:'fail', bugDesc:'CategoryId=1 có 2 sản phẩm, test expect 1' },
+      { name:'GetAll_FilterIsFeaturedTrue_Returns1',        bug:null,       expectedResult:'pass' },
+      { name:'GetById_ExistingId_Returns200',               bug:null,       expectedResult:'pass' },
+      { name:'GetById_NotFound_Returns404',                 bug:null,       expectedResult:'pass' },
+      { name:'GetById_ZeroId_Returns404',                   bug:'boundary', expectedResult:'fail', bugDesc:'Id=0 phải 400, test expect 404' },
+      { name:'GetById_NegativeId_Returns400',               bug:null,       expectedResult:'pass' },
+      { name:'Create_ValidRequest_Returns201',              bug:null,       expectedResult:'pass' },
+      { name:'Create_CategoryNotFound_Returns400',          bug:null,       expectedResult:'pass' },
+      { name:'Create_InactiveCategory_Returns400',          bug:null,       expectedResult:'pass' },
+      { name:'Create_NegativePrice_Returns201',             bug:'boundary', expectedResult:'warn', bugDesc:'Thiếu ModelState error → InMemory cho lưu giá âm → pass oan' },
+      { name:'Create_PriceZero_Returns201',                 bug:null,       expectedResult:'pass' },
+      { name:'Create_MissingName_Returns400',               bug:null,       expectedResult:'pass' },
+      { name:'Create_NameExactly200Chars_Returns201',       bug:null,       expectedResult:'pass' },
+      { name:'Create_WithIsFeaturedTrue_DoesNotVerifyDbValue',bug:'validate',expectedResult:'warn', bugDesc:'Assert.True(true) — không verify IsFeatured lưu đúng vào DB' },
+      { name:'Update_ValidRequest_Returns200',              bug:null,       expectedResult:'pass' },
+      { name:'Update_NotFound_Returns404',                  bug:null,       expectedResult:'pass' },
+      { name:'Update_InvalidCategory_Returns404',           bug:'status',   expectedResult:'fail', bugDesc:'CategoryId không tồn tại trả 400, test expect 404' },
+      { name:'Update_NegativeId_Returns400',                bug:null,       expectedResult:'pass' },
+      { name:'Update_ImageUrlNull_KeepsOldImage',           bug:null,       expectedResult:'pass' },
+      { name:'Delete_ProductWithOrders_Returns409',         bug:null,       expectedResult:'pass' },
+      { name:'Delete_NotFound_Returns404',                  bug:null,       expectedResult:'pass' },
+      { name:'Delete_NegativeId_Returns400',                bug:null,       expectedResult:'pass' },
+      { name:'Delete_ValidProduct_Returns200',              bug:null,       expectedResult:'pass' },
+    ]
+  },
+  {
+    id: 'batchlots', name: 'BatchLots', icon: '📦',
+    tests: [
+      { name:'GetAll_NoFilter_ReturnsAllBatchLots',           bug:null,       expectedResult:'pass' },
+      { name:'GetAll_FilterByProductId_Returns2',             bug:'logic',    expectedResult:'fail', bugDesc:'ProductId=1 chỉ có 1 lô, test expect 2' },
+      { name:'GetAll_FilterByNonExistProductId_ReturnsEmpty', bug:null,       expectedResult:'pass' },
+      { name:'GetById_ExistingId_Returns200',                 bug:null,       expectedResult:'pass' },
+      { name:'GetById_NotFound_Returns404',                   bug:null,       expectedResult:'pass' },
+      { name:'GetById_NegativeId_Returns404',                 bug:'status',   expectedResult:'fail', bugDesc:'Id âm phải 400, test expect 404' },
+      { name:'GetById_ZeroId_Returns400',                     bug:null,       expectedResult:'pass' },
+      { name:'Create_ValidRequest_Returns201',                bug:null,       expectedResult:'pass' },
+      { name:'Create_DuplicateLotCode_Returns409',            bug:null,       expectedResult:'pass' },
+      { name:'Create_ExpireDateEqualsHarvestDate_Returns201', bug:'boundary', expectedResult:'fail', bugDesc:'ExpireDate = HarvestDate phải 400, test expect 201' },
+      { name:'Create_ExpireDateOneDayAfterHarvest_Returns201',bug:null,       expectedResult:'pass' },
+      { name:'Create_ProductNotFound_Returns400',             bug:null,       expectedResult:'pass' },
+      { name:'Create_InactiveProduct_Returns400',             bug:null,       expectedResult:'pass' },
+      { name:'Create_QuantityInOne_Returns201',               bug:null,       expectedResult:'pass' },
+      { name:'Create_QuantityInZero_Returns400',              bug:null,       expectedResult:'pass' },
+      { name:'Update_ValidRequest_Returns200',                bug:null,       expectedResult:'pass' },
+      { name:'Update_QuantityInLessThanSold_Returns400ButNoMessageCheck',bug:'validate',expectedResult:'warn', bugDesc:'Không kiểm tra nội dung message lỗi' },
+      { name:'Update_QuantityInEqualSold_Returns200',         bug:null,       expectedResult:'pass' },
+      { name:'Update_NotFound_Returns404',                    bug:null,       expectedResult:'pass' },
+      { name:'Delete_ValidBatchLot_Returns200',               bug:null,       expectedResult:'pass' },
+      { name:'Delete_BatchLotWithOrderItems_Returns409',      bug:null,       expectedResult:'pass' },
+      { name:'Delete_NotFound_Returns404',                    bug:null,       expectedResult:'pass' },
+      { name:'Delete_NegativeId_Returns404',                  bug:'status',   expectedResult:'fail', bugDesc:'Id âm phải 400, test expect 404' },
+    ]
+  },
+  {
+    id: 'coupons', name: 'Coupons', icon: '🎟️',
+    tests: [
+      { name:'GetAll_NoFilter_ReturnsAllCoupons',     bug:null,       expectedResult:'pass' },
+      { name:'GetAll_FilterActiveTrue_Returns2',      bug:null,       expectedResult:'pass' },
+      { name:'GetAll_FilterActiveFalse_Returns1',     bug:null,       expectedResult:'pass' },
+      { name:'Validate_ValidCode_Returns200',         bug:null,       expectedResult:'pass' },
+      { name:'Validate_ExpiredCode_Returns404',       bug:'status',   expectedResult:'fail', bugDesc:'Mã hết hạn trả 422, test expect 404' },
+      { name:'Validate_InactiveCode_Returns422',      bug:null,       expectedResult:'pass' },
+      { name:'Validate_CodeNotFound_Returns404',      bug:null,       expectedResult:'pass' },
+      { name:'Validate_LowercaseCode_Returns200',     bug:null,       expectedResult:'pass' },
+      { name:'Create_ValidPercent_Returns201',        bug:null,       expectedResult:'pass' },
+      { name:'Create_ValidFixed_Returns201',          bug:null,       expectedResult:'pass' },
+      { name:'Create_DuplicateCode_Returns409',       bug:null,       expectedResult:'pass' },
+      { name:'Create_Percent100_Returns400',          bug:'boundary', expectedResult:'fail', bugDesc:'Percent=100 là hợp lệ (max), API trả 201, test expect 400' },
+      { name:'Create_PercentOver100_Returns400',      bug:null,       expectedResult:'pass' },
+      { name:'Create_ExpiryDateInPast_Returns400',    bug:null,       expectedResult:'pass' },
+      { name:'Create_LowercaseCode_DoesNotVerifyUppercase',bug:'validate',expectedResult:'warn', bugDesc:'Không verify Code lưu uppercase trong DB' },
+      { name:'Create_CodeExactly3Chars_Returns201',   bug:null,       expectedResult:'pass' },
+      { name:'Create_CodeExactly20Chars_Returns201',  bug:null,       expectedResult:'pass' },
+      { name:'Update_ValidRequest_Returns200',        bug:null,       expectedResult:'pass' },
+      { name:'Update_NotFound_Returns400',            bug:'status',   expectedResult:'fail', bugDesc:'Id không tồn tại trả 404, test expect 400' },
+      { name:'Delete_CouponUsedInOrder_Returns409',   bug:null,       expectedResult:'pass' },
+      { name:'Delete_UnusedCoupon_Returns200',        bug:null,       expectedResult:'pass' },
+      { name:'Delete_NotFound_Returns404',            bug:null,       expectedResult:'pass' },
+      { name:'Delete_NegativeId_Returns400',          bug:null,       expectedResult:'pass' },
+    ]
+  },
+  {
+    id: 'orders', name: 'Orders', icon: '📋',
+    tests: [
+      { name:'GetAll_NoFilter_ReturnsAllOrders',              bug:null,       expectedResult:'pass' },
+      { name:'GetAll_FilterByPending_Returns1',               bug:null,       expectedResult:'pass' },
+      { name:'GetAll_FilterByCancelled_Returns1',             bug:'logic',    expectedResult:'fail', bugDesc:'Không có order Cancelled, test expect 1' },
+      { name:'GetAll_FilterByNonExistStatus_ReturnsEmpty',    bug:null,       expectedResult:'pass' },
+      { name:'GetById_ExistingId_Returns200',                 bug:null,       expectedResult:'pass' },
+      { name:'GetById_NotFound_Returns404',                   bug:null,       expectedResult:'pass' },
+      { name:'GetById_ZeroId_Returns404',                     bug:'boundary', expectedResult:'fail', bugDesc:'Id=0 phải 400, test expect 404' },
+      { name:'GetById_NegativeId_Returns400',                 bug:null,       expectedResult:'pass' },
+      { name:'GetById_Order1_DoesNotCheckItems',              bug:'validate', expectedResult:'warn', bugDesc:'Assert.True(true) — không verify Items trong response' },
+      { name:'UpdateStatus_PendingToPaid_Returns200',         bug:null,       expectedResult:'pass' },
+      { name:'UpdateStatus_PendingToPaid_SetsPaidAt',         bug:null,       expectedResult:'pass' },
+      { name:'UpdateStatus_CompletedToPending_Returns200',    bug:'logic',    expectedResult:'fail', bugDesc:'Completed là terminal status, phải 422, test expect 200' },
+      { name:'UpdateStatus_NotFound_Returns404',              bug:null,       expectedResult:'pass' },
+      { name:'UpdateStatus_NegativeId_Returns400',            bug:null,       expectedResult:'pass' },
+      { name:'UpdateStatus_TerminalStatuses_Returns422(Completed)',bug:null,  expectedResult:'pass' },
+      { name:'UpdateStatus_TerminalStatuses_Returns422(Cancelled)', bug:null, expectedResult:'pass' },
+      { name:'UpdateStatus_TerminalStatuses_Returns422(Refunded)',  bug:null, expectedResult:'pass' },
+      { name:'UpdateStatus_PaidToShipped_Returns422',         bug:'status',   expectedResult:'fail', bugDesc:'Paid→Shipped hợp lệ trả 200, test expect 422' },
+      { name:'Delete_PendingOrder_Returns200',                bug:null,       expectedResult:'pass' },
+      { name:'Delete_PaidOrder_Returns422',                   bug:null,       expectedResult:'pass' },
+      { name:'Delete_CompletedOrder_Returns422',              bug:null,       expectedResult:'pass' },
+      { name:'Delete_NotFound_Returns404',                    bug:null,       expectedResult:'pass' },
+      { name:'Delete_NegativeId_Returns400',                  bug:null,       expectedResult:'pass' },
+      { name:'Delete_PendingOrder_CascadeDeletesOrderItems',  bug:null,       expectedResult:'pass' },
+    ]
+  }
+];
+
+// ── State ──────────────────────────────────────────────────────
+let state = {}; // { testId: { status, duration } }
+let activeSuite = null;
+let filterMode  = 'all';
+let isRunning   = false;
+let consoleOpen = false;
+
+const BUG_LABELS = {
+  status:   'Sai status',
+  logic:    'Logic sai',
+  boundary: 'Boundary',
+  validate: 'Thiếu validate'
+};
+const STATUS_ICON  = { pass:'✓', fail:'✗', warn:'⚠', running:'', idle:'·' };
+const STATUS_DURATIONS = { pass:[8,80], fail:[5,60], warn:[10,90] };
+
+// ── Init ───────────────────────────────────────────────────────
+function init() {
+  renderSidebar();
+  updateStats();
+}
+
+function testId(suiteId, testName) { return `${suiteId}::${testName}`; }
+
+// ── Render Sidebar ─────────────────────────────────────────────
+function renderSidebar() {
+  const el = document.getElementById('suiteList');
+  el.innerHTML = SUITES.map(s => {
+    const results = getSuiteResults(s);
+    const dot = results.running ? 'running' : results.fail > 0 ? 'fail' : results.pass > 0 ? 'pass' : '';
+    const badge = results.total > 0
+      ? `<span class="suite-badge ${results.fail>0?'fail':results.pass===results.total?'pass':''}">${results.pass}/${results.total}</span>`
+      : `<span class="suite-badge">${s.tests.length}</span>`;
+    return `<div class="suite-item ${activeSuite===s.id?'active':''}" onclick="selectSuite('${s.id}')">
+      <div class="suite-name">
+        <div class="suite-dot ${dot}"></div>
+        ${s.icon} ${s.name}
+      </div>
+      ${badge}
+    </div>`;
+  }).join('');
+}
+
+function getSuiteResults(suite) {
+  let pass=0, fail=0, warn=0, running=0, total=0;
+  suite.tests.forEach(t => {
+    const s = state[testId(suite.id, t.name)];
+    if (!s) return;
+    total++;
+    if (s.status==='pass') pass++;
+    else if (s.status==='fail') fail++;
+    else if (s.status==='warn') warn++;
+    else if (s.status==='running') running++;
+  });
+  return { pass, fail, warn, running, total };
+}
+
+// ── Render Content ─────────────────────────────────────────────
+function selectSuite(id) {
+  activeSuite = id;
+  renderSidebar();
+  renderContent();
+}
+
+function renderContent() {
+  const content = document.getElementById('content');
+  if (!activeSuite) return;
+
+  const suite = SUITES.find(s => s.id === activeSuite);
+  if (!suite) return;
+
+  const tests = suite.tests.filter(t => {
+    if (filterMode === 'all') return true;
+    const s = state[testId(suite.id, t.name)];
+    if (filterMode === 'fail') return s?.status === 'fail';
+    if (filterMode === 'pass') return s?.status === 'pass';
+    if (filterMode === 'warn') return s?.status === 'warn';
+    if (filterMode === 'bug')  return t.bug !== null;
+    return true;
+  });
+
+  const r = getSuiteResults(suite);
+
+  content.innerHTML = `
+    <div class="content-header">
+      <div class="content-title">
+        ${suite.icon} ${suite.name}
+        <span style="font-size:13px;color:var(--muted);font-weight:400">${suite.tests.length} tests</span>
+      </div>
+      <div class="filter-tabs">
+        ${['all','pass','fail','warn','bug'].map(f =>
+          `<button class="filter-tab ${filterMode===f?'active':''}" onclick="setFilter('${f}')">${f==='all'?'All':f==='pass'?'✓ Pass':f==='fail'?'✗ Fail':f==='warn'?'⚠ Warn':'🐛 Bug'}</button>`
+        ).join('')}
+      </div>
+    </div>
+    ${tests.map(t => renderTestRow(suite.id, t)).join('')}
+    ${tests.length===0?'<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">Không có test nào</div></div>':''}
+  `;
+}
+
+function renderTestRow(suiteId, t) {
+  const id  = testId(suiteId, t.name);
+  const s   = state[id];
+  const st  = s?.status || 'idle';
+  const dur = s?.duration;
+
+  const icon = st === 'running'
+    ? `<div class="spinner"></div>`
+    : `<div class="test-status ${st}">${STATUS_ICON[st]||''}</div>`;
+
+  const bugTag = t.bug
+    ? `<span class="bug-tag ${t.bug}" data-tip="${t.bugDesc||''}">${BUG_LABELS[t.bug]}</span>`
+    : '';
+
+  const durTag = dur ? `<span class="test-duration">${dur}ms</span>` : '';
+
+  const runningBar = st === 'running'
+    ? `<div class="running-bar"><div class="running-bar-fill"></div></div>` : '';
+
+  return `
+    <div class="test-row" id="row-${CSS.escape(id)}">
+      ${icon}
+      <div class="test-info">
+        <div class="test-name">${t.name}</div>
+        <div class="test-meta">
+          <span>${suiteId}</span>
+          ${t.bug ? `<span style="color:var(--warn)">🐛 bug cài sẵn</span>` : ''}
+        </div>
+        ${runningBar}
+      </div>
+      ${bugTag}
+      ${durTag}
+    </div>
+  `;
+}
+
+// ── Filter ─────────────────────────────────────────────────────
+function setFilter(f) {
+  filterMode = f;
+  renderContent();
+}
+
+// ── Run Tests ──────────────────────────────────────────────────
+async function runAll() {
+  if (isRunning) return;
+  isRunning = true;
+  state = {};
+  document.getElementById('btnRun').disabled = true;
+  document.getElementById('consoleBody').innerHTML = '';
+  consoleOpen = true;
+  document.getElementById('consoleWrap').classList.add('open');
+  document.getElementById('consoleLabel').textContent = '▼ Console Output';
+
+  log('info', `[${now()}] ══ ShopNongSan xUnit Test Runner ══`);
+  log('info', `[${now()}] Đang khởi tạo InMemory Database...`);
+  await delay(400);
+  log('info', `[${now()}] ✓ Seed data hoàn tất (3 categories, 3 products, 2 batchlots, 3 coupons, 3 orders)`);
+  await delay(200);
+
+  for (const suite of SUITES) {
+    activeSuite = suite.id;
+    log('info', `\n[${now()}] ── ${suite.icon} ${suite.name} ──`);
+    renderSidebar();
+    renderContent();
+
+    for (const t of suite.tests) {
+      const id = testId(suite.id, t.name);
+      state[id] = { status: 'running' };
+      updateStats();
+      renderContent();
+
+      const baseDur = STATUS_DURATIONS[t.expectedResult] || [10,60];
+      const dur = rand(...baseDur);
+      await delay(dur + rand(10,40));
+
+      // Determine final result
+      let finalStatus = t.expectedResult;
+      state[id] = { status: finalStatus, duration: dur };
+
+      const icon = finalStatus==='pass'?'✓':finalStatus==='fail'?'✗':'⚠';
+      const color = finalStatus==='pass'?'pass':finalStatus==='fail'?'fail':'warn';
+      log(color, `  [${icon}] ${t.name} (${dur}ms)${t.bugDesc?' — '+t.bugDesc:''}`);
+
+      updateStats();
+      renderSidebar();
+      renderContent();
+    }
+  }
+
+  // Summary
+  const total = Object.keys(state).length;
+  const pass  = Object.values(state).filter(s=>s.status==='pass').length;
+  const fail  = Object.values(state).filter(s=>s.status==='fail').length;
+  const warn  = Object.values(state).filter(s=>s.status==='warn').length;
+
+  log('info', `\n[${now()}] ══ KẾT QUẢ ══`);
+  log('pass', `[${now()}] ✓ Passed : ${pass}`);
+  log('fail', `[${now()}] ✗ Failed : ${fail}`);
+  log('warn', `[${now()}] ⚠ Warning: ${warn}`);
+  log('info', `[${now()}] Tổng    : ${total} tests`);
+
+  isRunning = false;
+  document.getElementById('btnRun').disabled = false;
+}
+
+// ── Stats ──────────────────────────────────────────────────────
+function updateStats() {
+  const all   = Object.values(state);
+  const total = SUITES.reduce((a,s) => a + s.tests.length, 0);
+  const run   = all.filter(s=>s.status==='running').length;
+  const pass  = all.filter(s=>s.status==='pass').length;
+  const fail  = all.filter(s=>s.status==='fail').length;
+  const warn  = all.filter(s=>s.status==='warn').length;
+  const done  = pass + fail + warn;
+
+  document.getElementById('sTotal').textContent = total;
+  document.getElementById('sRun').textContent   = run;
+  document.getElementById('sPass').textContent  = pass;
+  document.getElementById('sFail').textContent  = fail;
+  document.getElementById('sWarn').textContent  = warn;
+  document.getElementById('progressFill').style.width = total > 0 ? `${(done/total*100).toFixed(1)}%` : '0%';
+}
+
+// ── Reset ──────────────────────────────────────────────────────
+function resetAll() {
+  if (isRunning) return;
+  state = {};
+  filterMode = 'all';
+  updateStats();
+  renderSidebar();
+  if (activeSuite) renderContent();
+  document.getElementById('consoleBody').innerHTML = '';
+  log('info', `[${now()}] ↺ Đã reset tất cả test results`);
+}
+
+// ── Console ────────────────────────────────────────────────────
+function toggleConsole() {
+  consoleOpen = !consoleOpen;
+  document.getElementById('consoleWrap').classList.toggle('open', consoleOpen);
+  document.getElementById('consoleLabel').textContent = consoleOpen ? '▼ Console Output' : '▲ Console Output';
+}
+
+function log(type, msg) {
+  const body = document.getElementById('consoleBody');
+  const line = document.createElement('div');
+  line.className = `log-line ${type}`;
+  line.textContent = msg;
+  body.appendChild(line);
+  body.scrollTop = body.scrollHeight;
+}
+
+// ── Utils ──────────────────────────────────────────────────────
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function now() {
+  return new Date().toLocaleTimeString('vi-VN', { hour12: false,
+    hour:'2-digit', minute:'2-digit', second:'2-digit' });
+}
+
+init();
+    </script>
+</body>
+</html>

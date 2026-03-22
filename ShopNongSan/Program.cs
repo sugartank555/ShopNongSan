@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ShopNongSan.Data;
 using ShopNongSan.Models;
-
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
@@ -26,7 +28,22 @@ builder.Services
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders()
     .AddDefaultUI();
-
+// Thêm JWT Bearer cho API (song song với Cookie Identity)
+builder.Services.AddAuthentication()
+    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+        };
+    });
 builder.Services.ConfigureApplicationCookie(opt =>
 {
     opt.LoginPath = "/Identity/Account/Login";
@@ -37,6 +54,31 @@ builder.Services.Configure<PayOSSettings>(
 
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new() { Title = "ShopNongSan API", Version = "v1" });
+
+    // Chỉ scan route bắt đầu bằng api/
+    c.DocInclusionPredicate((docName, apiDesc) =>
+        apiDesc.RelativePath?.StartsWith("api/") == true);
+
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Nhập token: Bearer {your_token}"
+    });
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {{
+        new Microsoft.OpenApi.Models.OpenApiSecurityScheme {
+            Reference = new() { Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme, Id = "Bearer" }
+        }, Array.Empty<string>()
+    }});
+});
 builder.Services.AddSession();
 
 // Thêm vào trước builder.Build()
@@ -64,6 +106,14 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthentication();
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c => {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "ShopNongSan API v1");
+        c.RoutePrefix = "swagger";
+    });
+}
 app.UseAuthorization();
 app.UseSession();
 // Route cho Areas (Dashboard)
